@@ -117,6 +117,7 @@ function print_args
     done
 }
 
+# verify that the user is aware that this benchmark will overwrite files called "$(TESTFILENAME)
 function verify_overwrite_is_okay
 {
     echo "[*] this benchmark will overwrite files and the contents of directories named $TESTFILENAME. Are you sure you want to proceed? (yes/no)"
@@ -125,6 +126,15 @@ function verify_overwrite_is_okay
         echo "you must answer \"yes\" in order to continue"
         exit
     fi
+}
+
+# clean up files locally and in client
+function clean
+{
+    printf "[*] Removing $TESTFILENAME from local and client..."
+    rm -rf $TESTFILENAME
+    printf "done\n"
+    echo [!] TODO: CLEAN $TESTFILENAME from client
 }
 
 
@@ -144,8 +154,7 @@ verify_args
 # print args to verify
 # print_args
 
+# clean up files locally and in client
+clean
 exit
-
-
-
 
