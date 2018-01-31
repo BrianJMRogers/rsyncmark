@@ -7,7 +7,6 @@
     # determine file structure
         # if given a file, use that
             # cp it to a new directory called testdir
-        # else create a file dir and use that
     # determine which output file to use
         # if none is specified, default to PROGNAME_OUTPUT
 # read password
@@ -18,6 +17,13 @@
     # parse output and place in file
     # ...test x finished.
 # alert user when entire thing has been completed
+
+
+##########################################################################################
+# gloabal constants
+##########################################################################################
+PROG_NAME="rsyncmark"
+TESTFILENAME="testdir"
 
 ##########################################################################################
 # argument declarations
@@ -48,6 +54,7 @@ host=
 # misc variables
 declare -i arg_iterator=$#
 declare -i num_args=$#
+verification=
 
 ##########################################################################################
 # function declarations
@@ -85,10 +92,17 @@ function parse_args
     # output file exists (if it doesn't, make one)
 function verify_args
 {
-    if [ ! -f $file_name ]; then
+    # check that the file exists
+    if [ -f $file_name ] || [ -d $file_name ]; then
+        printf "[*] Copying $file_name to $TESTFILENAME..."
+        cp -r $file_name $TESTFILENAME
+        printf "...done\n"
+    else
         echo $FILEERROR
         exit
-    elif [ ! -f $output_file ]; then
+    fi
+
+    if [ ! -f $output_file ]; then
         echo $OUTPUTFILEERROR
     fi
 }
@@ -97,10 +111,20 @@ function verify_args
 function print_args
 {
     arg_array=($trial_name $file_name $output_name $host)
-    echo "args: "
+    echo "[*] args: "
     for i in ${arg_array[@]}; do
         echo "\t$i"
     done
+}
+
+function verify_overwrite_is_okay
+{
+    echo "[*] this benchmark will overwrite files and the contents of directories named $TESTFILENAME. Are you sure you want to proceed? (yes/no)"
+    read verification
+    if [ "$verification" != "yes" ]; then
+        echo "you must answer \"yes\" in order to continue"
+        exit
+    fi
 }
 
 
@@ -111,11 +135,14 @@ function print_args
 # parse command line for arguments and verify that each is non empty
 parse_args
 
+# verify that the user is aware that this benchmark will overwrite files called "$(TESTFILENAME)
+verify_overwrite_is_okay
+
 # ensure that files which arguments point to exist
 verify_args
 
 # print args to verify
-print_args
+# print_args
 
 exit
 
