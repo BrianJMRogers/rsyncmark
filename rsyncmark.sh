@@ -2,21 +2,18 @@
 # PROGRAM STRUCTURE
 ##########################################################################################
 
-# parse args
-    # get trial name
-    # determine file structure
-        # if given a file, use that
-            # cp it to a new directory called testdir
-    # determine which output file to use
-        # if none is specified, default to PROGNAME_OUTPUT
-# read password
-# run trials
+# [DONE] parse args
+    # [DONE] get trial name
+    # [DONE] get file to sync name/path
+    # [DONE] get output file name
+# [TODO] read password
+# [TODO] run trials
     # test x starting...
     # delete testdir on client end using rsync
     # sync testdir
     # parse output and place in file
     # ...test x finished.
-# alert user when entire thing has been completed
+# [DONE] alert user when entire thing has been completed
 
 
 ##########################################################################################
@@ -156,5 +153,9 @@ verify_args
 
 # clean up files locally and in client
 clean
+
+# remind the user where their ouput is
+echo "[*] You can find this trial's statistics in the output file $output_name"
+
 exit
 
