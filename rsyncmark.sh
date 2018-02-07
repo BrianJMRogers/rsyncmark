@@ -16,11 +16,18 @@
 # [DONE] alert user when entire thing has been completed
 
 
+
 ##########################################################################################
 # gloabal constants
 ##########################################################################################
 PROG_NAME="rsyncmark"
-TESTFILENAME="testdir"
+TEST_FILE_NAME="testdir"
+PATH
+
+##########################################################################################
+# source files
+##########################################################################################
+source
 
 ##########################################################################################
 # argument declarations
@@ -30,7 +37,6 @@ NAMEARG="-n" # the name of this trial run. Will be listed as this in the output 
 FILEARG="-f" # the name of the file that this run will sync
 OUTPUTARG="-o" # the name of the file to which output will be written (will create if it doesn't exist)
 HOSTARG="-h" # the IP address of the client with which we'll rsync
-
 
 ##########################################################################################
 # Alert message declarations
@@ -91,8 +97,8 @@ function verify_args
 {
     # check that the file exists
     if [ -f $file_name ] || [ -d $file_name ]; then
-        printf "[*] Copying $file_name to $TESTFILENAME..."
-        cp -r $file_name $TESTFILENAME
+        printf "[*] Copying $file_name to $TEST_FILE_NAME..."
+        cp -r $file_name $TEST_FILE_NAME
         printf "...done\n"
     else
         echo $FILEERROR
@@ -114,10 +120,10 @@ function print_args
     done
 }
 
-# verify that the user is aware that this benchmark will overwrite files called "$(TESTFILENAME)
+# verify that the user is aware that this benchmark will overwrite files called "$(TEST_FILE_NAME)
 function verify_overwrite_is_okay
 {
-    echo "[*] this benchmark will overwrite files and the contents of directories named $TESTFILENAME. Are you sure you want to proceed? (yes/no)"
+    echo "[*] this benchmark will overwrite files and the contents of directories named $TEST_FILE_NAME. Are you sure you want to proceed? (yes/no)"
     read verification
     if [ "$verification" != "yes" ]; then
         echo "you must answer \"yes\" in order to continue"
@@ -128,10 +134,10 @@ function verify_overwrite_is_okay
 # clean up files locally and in client
 function clean
 {
-    printf "[*] Removing $TESTFILENAME from local and client..."
-    rm -rf $TESTFILENAME
+    printf "[*] Removing $TEST_FILE_NAME from local and client..."
+    rm -rf $TEST_FILE_NAME
     printf "done\n"
-    echo [!] TODO: CLEAN $TESTFILENAME from client
+    echo [!] TODO: CLEAN $TEST_FILE_NAME from client
 }
 
 
@@ -142,7 +148,7 @@ function clean
 # parse command line for arguments and verify that each is non empty
 parse_args
 
-# verify that the user is aware that this benchmark will overwrite files called "$(TESTFILENAME)
+# verify that the user is aware that this benchmark will overwrite files called "$(TEST_FILE_NAME)
 verify_overwrite_is_okay
 
 # ensure that files which arguments point to exist
