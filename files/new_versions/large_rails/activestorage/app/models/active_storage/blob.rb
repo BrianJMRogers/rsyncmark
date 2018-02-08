@@ -19,7 +19,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
   self.table_name = "active_storage_blobs"
 
   has_secure_token :key
-  store :metadata, accessors: [ :analyzed, :identified ], coder: ActiveRecord::Coders::JSON
+  store :metadata, accessors: [ :analyzed, :identified ], coder: JSON
 
   class_attribute :service
 

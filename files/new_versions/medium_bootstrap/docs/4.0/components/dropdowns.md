@@ -26,7 +26,7 @@ However, Bootstrap does add built-in support for most standard keyboard menu int
 
 Wrap the dropdown's toggle (your button or link) and the dropdown menu within `.dropdown`, or another element that declares `position: relative;`. Dropdowns can be triggered from `<a>` or `<button>` elements to better fit your potential needs.
 
-### Single button
+### Single button dropdowns
 
 Any single `.btn` can be turned into a dropdown toggle with some markup changes. Here's how you can put them to work with either `<button>` elements:
 
@@ -140,7 +140,7 @@ The best part is you can do this with any button variant, too:
 </div>
 {% endhighlight %}
 
-### Split button
+### Split button dropdowns
 
 Similarly, create split button dropdowns with virtually the same markup as single button dropdowns, but with the addition of `.dropdown-toggle-split` for proper spacing around the dropdown caret.
 
@@ -349,9 +349,7 @@ Button dropdowns work with buttons of all sizes, including default and split dro
 </div>
 {% endhighlight %}
 
-## Directions
-
-### Dropup
+## Dropup variation
 
 Trigger dropdown menus above elements by adding `.dropup` to the parent element.
 
@@ -411,7 +409,7 @@ Trigger dropdown menus above elements by adding `.dropup` to the parent element.
 </div>
 {% endhighlight %}
 
-### Dropright
+## Dropright variation
 
 Trigger dropdown menus at the right of the elements by adding `.dropright` to the parent element.
 
@@ -471,7 +469,7 @@ Trigger dropdown menus at the right of the elements by adding `.dropright` to th
 </div>
 {% endhighlight %}
 
-### Dropleft
+## Dropleft variation
 
 Trigger dropdown menus at the left of the elements by adding `.dropleft` to the parent element.
 
@@ -535,6 +533,7 @@ Trigger dropdown menus at the left of the elements by adding `.dropleft` to the 
 </div>
 {% endhighlight %}
 
+
 ## Menu items
 
 Historically dropdown menu contents *had* to be links, but that's no longer the case with v4. Now you can optionally use `<button>` elements in your dropdowns instead of just `<a>`s.
@@ -549,41 +548,6 @@ Historically dropdown menu contents *had* to be links, but that's no longer the 
     <button class="dropdown-item" type="button">Another action</button>
     <button class="dropdown-item" type="button">Something else here</button>
   </div>
-</div>
-{% endexample %}
-
-You can also create non-interactive dropdown items with `.dropdown-item-text`. Feel free to style further with custom CSS or text utilities.
-
-{% example html %}
-<div class="dropdown-menu">
-  <span class="dropdown-item-text">Dropdown item text</span>
-  <a class="dropdown-item" href="#">Action</a>
-  <a class="dropdown-item" href="#">Another action</a>
-  <a class="dropdown-item" href="#">Something else here</a>
-</div>
-{% endexample %}
-
-### Active
-
-Add `.active` to items in the dropdown to **style them as active**.
-
-{% example html %}
-<div class="dropdown-menu">
-  <a class="dropdown-item" href="#">Regular link</a>
-  <a class="dropdown-item active" href="#">Active link</a>
-  <a class="dropdown-item" href="#">Another link</a>
-</div>
-{% endexample %}
-
-### Disabled
-
-Add `.disabled` to items in the dropdown to **style them as disabled**.
-
-{% example html %}
-<div class="dropdown-menu">
-  <a class="dropdown-item" href="#">Regular link</a>
-  <a class="dropdown-item disabled" href="#">Disabled link</a>
-  <a class="dropdown-item" href="#">Another link</a>
 </div>
 {% endexample %}
 
@@ -608,9 +572,7 @@ By default, a dropdown menu is automatically positioned 100% from the top and al
 </div>
 {% endexample %}
 
-## Menu content
-
-### Headers
+## Menu headers
 
 Add a header to label sections of actions in any dropdown menu.
 
@@ -622,7 +584,7 @@ Add a header to label sections of actions in any dropdown menu.
 </div>
 {% endexample %}
 
-### Dividers
+## Menu dividers
 
 Separate groups of related menu items with a divider.
 
@@ -636,22 +598,7 @@ Separate groups of related menu items with a divider.
 </div>
 {% endexample %}
 
-### Text
-
-Place any freeform text within a dropdown menu with text and use [spacing utilities]({{ site.baseurl }}/docs/{{ site.docs_version }}/utilities/spacing/). Note that you'll likely need additional sizing styles to constrain the menu width.
-
-{% example html %}
-<div class="dropdown-menu p-4 text-muted" style="max-width: 200px;">
-  <p>
-    Some example text that's free-flowing within the dropdown menu.
-  </p>
-  <p class="mb-0">
-    And this is more example text.
-  </p>
-</div>
-{% endexample %}
-
-### Forms
+## Menu forms
 
 Put a form within a dropdown menu, or make it into a dropdown menu, and use [margin or padding utilities]({{ site.baseurl }}/docs/{{ site.docs_version }}/utilities/spacing/) to give it the negative space you require.
 
@@ -700,35 +647,27 @@ Put a form within a dropdown menu, or make it into a dropdown menu, and use [mar
 </form>
 {% endexample %}
 
-## Dropdown options
+## Active menu items
 
-Use `data-offset` or `data-reference` to change the location of the dropdown.
+Add `.active` to items in the dropdown to **style them as active**.
 
 {% example html %}
-<div class="d-flex">
-  <div class="dropdown mr-1">
-    <button type="button" class="btn btn-secondary dropdown-toggle" id="dropdownMenuOffset" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-offset="10,20">
-      Offset
-    </button>
-    <div class="dropdown-menu" aria-labelledby="dropdownMenuOffset">
-      <a class="dropdown-item" href="#">Action</a>
-      <a class="dropdown-item" href="#">Another action</a>
-      <a class="dropdown-item" href="#">Something else here</a>
-    </div>
-  </div>
-  <div class="btn-group">
-    <button type="button" class="btn btn-secondary">Reference</button>
-    <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" id="dropdownMenuReference" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-reference="parent">
-      <span class="sr-only">Toggle Dropdown</span>
-    </button>
-    <div class="dropdown-menu" aria-labelledby="dropdownMenuReference">
-      <a class="dropdown-item" href="#">Action</a>
-      <a class="dropdown-item" href="#">Another action</a>
-      <a class="dropdown-item" href="#">Something else here</a>
-      <div class="dropdown-divider"></div>
-      <a class="dropdown-item" href="#">Separated link</a>
-    </div>
-  </div>
+<div class="dropdown-menu">
+  <a class="dropdown-item" href="#">Regular link</a>
+  <a class="dropdown-item active" href="#">Active link</a>
+  <a class="dropdown-item" href="#">Another link</a>
+</div>
+{% endexample %}
+
+## Disabled menu items
+
+Add `.disabled` to items in the dropdown to **style them as disabled**.
+
+{% example html %}
+<div class="dropdown-menu">
+  <a class="dropdown-item" href="#">Regular link</a>
+  <a class="dropdown-item disabled" href="#">Disabled link</a>
+  <a class="dropdown-item" href="#">Another link</a>
 </div>
 {% endexample %}
 
@@ -800,12 +739,6 @@ Options can be passed via data attributes or JavaScript. For data attributes, ap
       <td>string | element</td>
       <td>'scrollParent'</td>
       <td>Overflow constraint boundary of the dropdown menu. Accepts the values of <code>'viewport'</code>, <code>'window'</code>, <code>'scrollParent'</code>, or an HTMLElement reference (JavaScript only). For more information refer to Popper.js's <a href="https://popper.js.org/popper-documentation.html#modifiers..preventOverflow.boundariesElement">preventOverflow docs</a>.</td>
-    </tr>
-    <tr>
-      <td>reference</td>
-      <td>string | element</td>
-      <td>'toggle'</td>
-      <td>Reference element of the dropdown menu. Accepts the values of <code>'toggle'</code>, <code>'parent'</code>, or an HTMLElement reference. For more information refer to Popper.js's <a href="https://popper.js.org/popper-documentation.html#referenceObject">referenceObject docs</a>.</td>
     </tr>
   </tbody>
 </table>

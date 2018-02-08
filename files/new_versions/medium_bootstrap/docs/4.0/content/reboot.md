@@ -63,37 +63,37 @@ All heading elements—e.g., `<h1>`—and `<p>` are reset to have their `margin-
   <tbody>
     <tr>
       <td>
-        {{ "`<h1></h1>`" | markdownify }}
+        {% markdown %}`<h1></h1>`{% endmarkdown %}
       </td>
       <td><span class="h1">h1. Bootstrap heading</span></td>
     </tr>
     <tr>
       <td>
-        {{ "`<h2></h2>`" | markdownify }}
+        {% markdown %}`<h2></h2>`{% endmarkdown %}
       </td>
       <td><span class="h2">h2. Bootstrap heading</span></td>
     </tr>
     <tr>
       <td>
-        {{ "`<h3></h3>`" | markdownify }}
+        {% markdown %}`<h3></h3>`{% endmarkdown %}
       </td>
       <td><span class="h3">h3. Bootstrap heading</span></td>
     </tr>
     <tr>
       <td>
-        {{ "`<h4></h4>`" | markdownify }}
+        {% markdown %}`<h4></h4>`{% endmarkdown %}
       </td>
       <td><span class="h4">h4. Bootstrap heading</span></td>
     </tr>
     <tr>
       <td>
-        {{ "`<h5></h5>`" | markdownify }}
+        {% markdown %}`<h5></h5>`{% endmarkdown %}
       </td>
       <td><span class="h5">h5. Bootstrap heading</span></td>
     </tr>
     <tr>
       <td>
-        {{ "`<h6></h6>`" | markdownify }}
+        {% markdown %}`<h6></h6>`{% endmarkdown %}
       </td>
       <td><span class="h6">h6. Bootstrap heading</span></td>
     </tr>
@@ -105,7 +105,7 @@ All heading elements—e.g., `<h1>`—and `<p>` are reset to have their `margin-
 All lists—`<ul>`, `<ol>`, and `<dl>`—have their `margin-top` removed and a `margin-bottom: 1rem`. Nested lists have no `margin-bottom`.
 
 <div class="bd-example">
-{% capture markdown %}
+{% markdown %}
 * Lorem ipsum dolor sit amet
 * Consectetur adipiscing elit
 * Integer molestie lorem at massa
@@ -127,22 +127,23 @@ All lists—`<ul>`, `<ol>`, and `<dl>`—have their `margin-top` removed and a `
 6. Faucibus porta lacus fringilla vel
 7. Aenean sit amet erat nunc
 8. Eget porttitor lorem
-{% endcapture %}
-{{ markdown | markdownify }}
+{% endmarkdown %}
 </div>
 
 For simpler styling, clear hierarchy, and better spacing, description lists have updated `margin`s. `<dd>`s reset `margin-left` to `0` and add `margin-bottom: .5rem`. `<dt>`s are **bolded**.
 
 <div class="bd-example">
-  <dl>
-    <dt>Description lists</dt>
-    <dd>A description list is perfect for defining terms.</dd>
-    <dt>Euismod</dt>
-    <dd>Vestibulum id ligula porta felis euismod semper eget lacinia odio sem.</dd>
-    <dd>Donec id elit non mi porta gravida at eget metus.</dd>
-    <dt>Malesuada porta</dt>
-    <dd>Etiam porta sem malesuada magna mollis euismod.</dd>
-  </dl>
+{% markdown %}
+<dl>
+  <dt>Description lists</dt>
+  <dd>A description list is perfect for defining terms.</dd>
+  <dt>Euismod</dt>
+  <dd>Vestibulum id ligula porta felis euismod semper eget lacinia odio sem.</dd>
+  <dd>Donec id elit non mi porta gravida at eget metus.</dd>
+  <dt>Malesuada porta</dt>
+  <dd>Etiam porta sem malesuada magna mollis euismod.</dd>
+</dl>
+{% endmarkdown %}
 </div>
 
 ## Preformatted text
@@ -150,11 +151,13 @@ For simpler styling, clear hierarchy, and better spacing, description lists have
 The `<pre>` element is reset to remove its `margin-top` and use `rem` units for its `margin-bottom`.
 
 <div class="bd-example">
+{% markdown %}
 <pre>
 .example-element {
   margin-bottom: 1rem;
 }
 </pre>
+{% endmarkdown %}
 </div>
 
 ## Tables

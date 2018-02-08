@@ -32,37 +32,37 @@ All HTML headings, `<h1>` through `<h6>`, are available.
   <tbody>
     <tr>
       <td>
-        {{ "`<h1></h1>`" | markdownify }}
+        {% markdown %}`<h1></h1>`{% endmarkdown %}
       </td>
       <td><span class="h1">h1. Bootstrap heading</span></td>
     </tr>
     <tr>
       <td>
-        {{ "`<h2></h2>`" | markdownify }}
+        {% markdown %}`<h2></h2>`{% endmarkdown %}
       </td>
       <td><span class="h2">h2. Bootstrap heading</span></td>
     </tr>
     <tr>
       <td>
-        {{ "`<h3></h3>`" | markdownify }}
+        {% markdown %}`<h3></h3>`{% endmarkdown %}
       </td>
       <td><span class="h3">h3. Bootstrap heading</span></td>
     </tr>
     <tr>
       <td>
-        {{ "`<h4></h4>`" | markdownify }}
+        {% markdown %}`<h4></h4>`{% endmarkdown %}
       </td>
       <td><span class="h4">h4. Bootstrap heading</span></td>
     </tr>
     <tr>
       <td>
-        {{ "`<h5></h5>`" | markdownify }}
+        {% markdown %}`<h5></h5>`{% endmarkdown %}
       </td>
       <td><span class="h5">h5. Bootstrap heading</span></td>
     </tr>
     <tr>
       <td>
-        {{ "`<h6></h6>`" | markdownify }}
+        {% markdown %}`<h6></h6>`{% endmarkdown %}
       </td>
       <td><span class="h6">h6. Bootstrap heading</span></td>
     </tr>

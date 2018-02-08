@@ -3,8 +3,6 @@
 module ActiveStorage
   # Extracts width and height in pixels from an image blob.
   #
-  # If the image contains EXIF data indicating its angle is 90 or 270 degrees, its width and height are swapped for convenience.
-  #
   # Example:
   #
   #   ActiveStorage::Analyzer::ImageAnalyzer.new(blob).metadata
@@ -19,11 +17,7 @@ module ActiveStorage
 
     def metadata
       read_image do |image|
-        if rotated_image?(image)
-          { width: image.height, height: image.width }
-        else
-          { width: image.width, height: image.height }
-        end
+        { width: image.width, height: image.height }
       end
     rescue LoadError
       logger.info "Skipping image analysis because the mini_magick gem isn't installed"
@@ -36,10 +30,6 @@ module ActiveStorage
           require "mini_magick"
           yield MiniMagick::Image.new(file.path)
         end
-      end
-
-      def rotated_image?(image)
-        %w[ RightTop LeftBottom ].include?(image["%[orientation]"])
       end
   end
 end
