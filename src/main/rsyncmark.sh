@@ -6,15 +6,16 @@
     # [DONE] get trial name
     # [DONE] get output file name
     # [DONE] get file size arg
-# [TODO] verify files_to_transfer exist
+# [DONE] verify files_to_transfer exist
 # [DONE] read password
 # [TODO] time dummy expect script
-# [TODO] run warm up trials
-# [TODO] run timed trials
-    # [TODO] sync old version (delete not present) to client's target
-    # [TODO] sync new version to client target
-    # [TODO] parse output and place in file
-# [TODO] remove files from destination
+# [TODO] stage entire thing (move files over, create target dir)
+# [TODO] rsync (warm up then run, this is a for loop)
+    # [TODO] ssh then cp file(s) into target dir
+    # [TODO] rsync local file(s) to target dir
+    # [TODO] record output
+    # [TODO] delete files from target dir
+# [TODO] remove staging files and target files
 # [DONE] alert user when entire thing has been completed
 
 ##########################################################################################
@@ -22,10 +23,13 @@
 ##########################################################################################
 PROG_NAME="rsyncmark"
 TARGET_DIR="~/"
+PATH_TO_NEW_FILES="../../files/new"
+PATH_TO_OLD_FILES="../../files/old"
+LARGE_FILE_NAME="large_rails"
+MEDIUM_FILE_NAME="medium_bootstrap"
+SMALL_FILE_NAME="small_homebrew"
 
-##########################################################################################
 # argument declarations
-##########################################################################################
 NAMEARG="-n" # the name of this trial run. Will be listed as this in the output file
 FILESIZEARG="-s" # the name of the file that this run will sync
 OUTPUTARG="-o" # the name of the file to which output will be written (will create if it doesn't exist)
@@ -45,13 +49,6 @@ host_password=
 declare -i arg_iterator=$#
 declare -i num_args=$#
 verification=
-small_file_name_new="small_new_brew"
-medium_file_name_new="medium_new_bootstrap"
-large_file_name_new="large_new_rails"
-small_file_name_old="small_old_brew"
-medium_file_name_old="medium_old_bootstrap"
-large_file_name_old="large_old_rails"
-
 
 ##########################################################################################
 # Alert message declarations
@@ -146,6 +143,8 @@ function clean
 
 }
 
+#### FUNCTION NAME: get_host_password
+#### FUNCTION PUTPOSE: retreive the password of the server
 function get_host_password
 {
     printf "Enter the password for the remote client: "
@@ -153,16 +152,25 @@ function get_host_password
     printf "\n"
 }
 
+#### FUNCTION NAME: verify_files_to_transfer
+#### FUNCTION PUTPOSE: check that the files we hope to transfer are here locally
 function verify_files_to_transfer
 {
-    files_array($small_old_brew, $small_new_brew, $medium_old_bootstrap, $medium_new_bootstrap, $large_new_rails, $large_old_rails)
-
+    # declare array to iterate through
+    files_array=( $LARGE_FILE_NAME $MEDIUM_FILE_NAME $SMALL_FILE_NAME )
     for i in ${files_array[@]}; do
-        # check if each file is there
+        # check if each file is in the new directory
+        if [ ! -d $PATH_TO_NEW_FILES/$i ]; then
+            echo " $PATH_TO_NEW_FILES/$i not found"
+        fi
+
+        # check if each file is in the old directory
+        if [ ! -d $PATH_TO_OLD_FILES/$i ]; then
+            echo " $PATH_TO_OLD_FILES/$i not found"
+        fi
     done
-
-
 }
+
 
 function run_rsync
 {
@@ -194,11 +202,11 @@ done
 ##########################################################################################
 # MAIN
 ##########################################################################################
-verify_files_to_transfer
+#verify_files_to_transfer
 
-parse_args
+#parse_args
 
-verify_args
+#verify_args
 
 #verify_overwrite_is_okay
 
