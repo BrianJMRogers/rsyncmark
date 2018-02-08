@@ -8,7 +8,7 @@
     # [DONE] get file size arg
 # [DONE] verify files_to_transfer exist
 # [DONE] read password
-# [TODO] time dummy expect script
+# [DONE] time dummy expect script
 # [TODO] stage entire thing (move files over, create target dir)
 # [TODO] rsync (warm up then run, this is a for loop)
     # [TODO] ssh then cp file(s) into target dir
