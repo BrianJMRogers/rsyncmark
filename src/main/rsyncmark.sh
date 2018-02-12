@@ -22,7 +22,12 @@
 # gloabal constants
 ##########################################################################################
 PROG_NAME="rsyncmark"
-TARGET_DIR="~/"
+TARGET_DIR_BASE="~/"  # this is the path on target MACHINE where STAGING/TARGET dirs exist
+
+STAGING_DIR_NAME="staging"
+TARGET_DIR_NAME="target"
+
+PATH_TO_STAGING_DIR="../../files/staging_files" # this is the path to these files locally
 PATH_TO_NEW_FILES="../../files/new"
 PATH_TO_OLD_FILES="../../files/old"
 LARGE_FILE_NAME="large_rails"
@@ -31,7 +36,6 @@ SMALL_FILE_NAME="small_homebrew"
 
 # argument declarations
 NAMEARG="-n" # the name of this trial run. Will be listed as this in the output file
-FILESIZEARG="-s" # the name of the file that this run will sync
 OUTPUTARG="-o" # the name of the file to which output will be written (will create if it doesn't exist)
 HOSTARG="-h" # the IP address of the client with which we'll rsync
 
@@ -44,6 +48,7 @@ file_size=
 output_name=
 host=
 host_password=
+file_to_send=
 
 # misc variables
 declare -i arg_iterator=$#
@@ -53,8 +58,7 @@ verification=
 ##########################################################################################
 # Alert message declarations
 ##########################################################################################
-USAGE="[!] USAGE: -n [name for this trial] -s [file size (small, medium, large)] -o [output file name (this will write to existing files of that name)] -h [IP of computer with which you'd like to sync]"
-FILESIZEERROR="[!] FILE SIZE ERROR: you must pass in a file size after the \"-s\" parameter of \"small\", \"medium\", or \"large\""
+USAGE="[!] USAGE: \n\t-n [name for this trial] \n\t-o [output file name (this will write to existing files of that name)] \n\t-h [IP of computer with which you'd like to sync]"
 OUTPUTFILEERROR="[*] Output file specified by $OUTPUTARG cannot be found...generating file.."
 
 ##########################################################################################
@@ -71,9 +75,6 @@ function parse_args
         if [ $i == $NAMEARG ]; then
             #echo "name:  ${BASH_ARGV[$num_args-1-$arg_iterator]}"
             trial_name=${BASH_ARGV[$num_args-1-$arg_iterator]}
-        elif [ $i == $FILESIZEARG ]; then
-            #echo "file:  ${BASH_ARGV[5-$arg_iterator]}"
-            file_size=${BASH_ARGV[$num_args-1-$arg_iterator]}
         elif [ $i == $OUTPUTARG ]; then
             #echo "output file:  ${BASH_ARGV[5-$arg_iterator]}"
             output_name=${BASH_ARGV[$num_args-1-$arg_iterator]}
@@ -84,7 +85,7 @@ function parse_args
     done
 
     # verify arguments were passes sucessfully
-    if [ -z $trial_name ] || [ -z $file_size ] || [ -z $output_name ] || [ -z $host ]; then
+    if [ -z $trial_name ] || [ -z $output_name ] || [ -z $host ]; then
         echo $USAGE
         exit
     fi
@@ -95,23 +96,17 @@ function parse_args
 function verify_args
 {
     # check that the file exists
-    if [ $file_size != "small" ] && [ $file_size != "medium" ] && [ $file_size != "large" ]; then
-        echo $FILESIZEERROR
-        exit
-    fi
-
     if [ ! -f $output_name ]; then
         echo "Unable to find an output file called [$output_name]... Generating file..."
         touch $output_name
     fi
-    exit
 }
 
 #### FUNCTION NAME: print_args
 #### FUNCTION PURPOSE: useful for debugging, prints all arguments passed in via command line
 function print_args
 {
-    arg_array=($trial_name $file_name $output_name $host)
+    arg_array=($trial_name $output_name $host)
     echo "[*] args: "
     for i in ${arg_array[@]}; do
         echo "\t$i"
@@ -198,23 +193,50 @@ done
     echo "end run_rsync"
 }
 
+function sync_file_to_send
+{
+    echo
+}
+
+function stage_files
+{
+    echo
+    # move staging dir over
+    # move files into staging dir
+    # move target dir over
+}
+
+function move_files_from_staging_to_target
+{
+    echo
+}
+
+function sync_files_to_target
+{
+    echo
+}
+
+function remove_staging_and_target_dirs
+{
+    echo
+}
+
 
 ##########################################################################################
 # MAIN
 ##########################################################################################
 #verify_files_to_transfer
 
-#parse_args
+parse_args
 
-#verify_args
+verify_args
 
 #verify_overwrite_is_okay
 
-# print_args # uncomment when needed
+print_args # uncomment when needed
 
 #get_host_password
-
-#run_rsync
+stage_files
 
 # clean up files locally and in client
 #clean
