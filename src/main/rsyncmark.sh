@@ -6,10 +6,10 @@
     # [DONE] get trial name
     # [DONE] get output file name
     # [DONE] get file size arg
-# [DONE] verify files_to_transfer exist
+# [TODO] verify files_to_transfer exist #do at the end when you know what you need to check
 # [DONE] read password
 # [DONE] time dummy expect script
-# [TODO] stage entire thing (move files over, create target dir)
+# [DONE] stage entire thing (move files over, create target dir)
 # [TODO] rsync (warm up then run, this is a for loop)
     # [TODO] ssh then cp file(s) into target dir
     # [TODO] rsync local file(s) to target dir
@@ -22,14 +22,21 @@
 # gloabal constants
 ##########################################################################################
 PROG_NAME="rsyncmark"
-TARGET_DIR_BASE="~/"  # this is the path on target MACHINE where STAGING/TARGET dirs exist
+SYNC_FILE_SCRIPT="sync_file.sh"
+SSH_MOVE_FILES_SCRIPT="move_files.sh"
+REMOTE_DIR_BASE="rsyncmark"  # this is the path on target MACHINE where STAGING/TARGET dirs exist
+REMOTE_DIR_BASE_LOCATION="~/"
 
 STAGING_DIR_NAME="staging"
 TARGET_DIR_NAME="target"
 
-PATH_TO_STAGING_DIR="../../files/staging_files" # this is the path to these files locally
-PATH_TO_NEW_FILES="../../files/new"
-PATH_TO_OLD_FILES="../../files/old"
+#testing
+PATH_TO_RSYNCMARK_FILE_DIR="../../files_test/rsyncmark" # this is the path to these files locally
+PATH_TO_NEW_FILES="../../files_test/new"
+PATH_TO_OLD_FILES="../../files_test/old"
+#PATH_TO_STAGING_DIR="../../files/staging_files" # this is the path to these files locally
+#PATH_TO_NEW_FILES="../../files/new"
+#PATH_TO_OLD_FILES="../../files/old"
 LARGE_FILE_NAME="large_rails"
 MEDIUM_FILE_NAME="medium_bootstrap"
 SMALL_FILE_NAME="small_homebrew"
@@ -98,7 +105,7 @@ function verify_args
     # check that the file exists
     if [ ! -f $output_name ]; then
         echo "Unable to find an output file called [$output_name]... Generating file..."
-        touch $output_name
+        touch $output_name.csv
     fi
 }
 
@@ -166,49 +173,20 @@ function verify_files_to_transfer
     done
 }
 
-
-function run_rsync
+function sync_file
 {
-    echo "start run_rsyc"
-    for i in {1..10}; do
-        echo $i
-
-    /usr/bin/expect <<EOF
-    spawn rsync -v rsyncmark.sh ../
-    expect {
-        "Are you sure you want to continue connecting (yes/no)"
-        {
-            send "yes\r"
-            exp_continue
-
-        }
-        "*assword:"
-        {
-            send "password\r"
-        }
-    }
-EOF
-done
-
-    echo "end run_rsync"
-}
-
-function sync_file_to_send
-{
-    echo
+    ./$SYNC_FILE_SCRIPT $1 $host $2 $host_password
 }
 
 function stage_files
 {
-    echo
     # move staging dir over
-    # move files into staging dir
-    # move target dir over
+    sync_file $PATH_TO_RSYNCMARK_FILE_DIR $REMOTE_DIR_BASE_LOCATION
 }
 
 function move_files_from_staging_to_target
 {
-    echo
+    ./$SSH_MOVE_FILES_SCRIPT $host $host_password $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$STAGING_DIR_NAME $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$TARGET_DIR_NAME
 }
 
 function sync_files_to_target
@@ -219,6 +197,11 @@ function sync_files_to_target
 function remove_staging_and_target_dirs
 {
     echo
+}
+
+function warm_up
+{
+    move_files_from_staging_to_target
 }
 
 
@@ -235,8 +218,11 @@ verify_args
 
 print_args # uncomment when needed
 
-#get_host_password
+get_host_password
+
 stage_files
+
+warm_up
 
 # clean up files locally and in client
 #clean
