@@ -12,7 +12,7 @@
 # [DONE] stage entire thing (move files over, create target dir)
 # [TODO] rsync (warm up then run, this is a for loop)
     # [DONE] move files from staging to target
-    # [TODO] sync files from local to target
+    # [DONE] sync files from local to target
     # [TODO] record output
 # [TODO] remove staging files and target files
 # [DONE] alert user when entire thing has been completed
@@ -105,7 +105,8 @@ function parse_args
     fi
 }
 
-#### FUNCTION PURPOSE: verifies that the file passed in with the $FILESIZEARG parameter #                      exists and checks that the output file does too, creating this if
+#### FUNCTION PURPOSE: verifies that the file passed in with the $FILESIZEARG parameter
+#                      exists and checks that the output file does too, creating this if
 #                      necessary
 function verify_args
 {
@@ -195,16 +196,8 @@ function move_files_from_staging_to_target
     ./$SSH_MOVE_FILES_SCRIPT $host $host_password $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$STAGING_DIR_NAME $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$TARGET_DIR_NAME
 }
 
-function sync_files_to_target
-{
-    echo
-}
-
-function remove_staging_and_target_dirs
-{
-    echo
-}
-
+#### FUNCTION PURPOSE: This function runs each rsync of large, medium, and small files 10 times to warm
+####                   up the benchmark
 function warm_up
 {
     echo "warming up..."
@@ -223,8 +216,9 @@ function warm_up
         ./$SYNC_FILE_SCRIPT $PATH_TO_NEW_FILES/$SMALL_FILE_NAME $host $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$TARGET_DIR_NAME $host_password
 
     done
-    }
+}
 
+#### FUNCTION PURPOSE: run the actual times trials of rsync
 function run_trials
 {
     # output file layout:
@@ -247,7 +241,8 @@ function run_trials
 
 }
 
-# $1 should indicate the file size, $2 indicates trial number
+#### FUNCTION PURPOSE: sync each file and record the output
+####                   $1 should indicate the file size, $2 indicates trial number
 function sync_file_record_output
 {
     file=
@@ -301,6 +296,7 @@ function sync_file_record_output
 
 }
 
+#### FUNCTION PURPOSE: retreive the time from the file $TIME_FILE_NAME specified by $1 (real, user, sys)
 function get_time
 {
     time=$(cat $TIME_FILE_NAME | grep $1 | awk '{print $2}')
@@ -330,9 +326,6 @@ run_trials
 
 # clean up files locally and in client
 #clean
-
-rm dump.txt
-rm time.txt
 
 # remind the user where their ouput is
 # echo "[*] You can find this trial's statistics in the output file $output_name"
