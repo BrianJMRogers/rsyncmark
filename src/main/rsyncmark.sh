@@ -11,10 +11,9 @@
 # [DONE] time dummy expect script
 # [DONE] stage entire thing (move files over, create target dir)
 # [TODO] rsync (warm up then run, this is a for loop)
-    # [TODO] ssh then cp file(s) into target dir
-    # [TODO] rsync local file(s) to target dir
+    # [DONE] move files from staging to target
+    # [TODO] sync files from local to target
     # [TODO] record output
-    # [TODO] delete files from target dir
 # [TODO] remove staging files and target files
 # [DONE] alert user when entire thing has been completed
 
@@ -40,6 +39,7 @@ PATH_TO_OLD_FILES="../../files_test/old"
 LARGE_FILE_NAME="large_rails"
 MEDIUM_FILE_NAME="medium_bootstrap"
 SMALL_FILE_NAME="small_homebrew"
+TIME_FILE_NAME="time.txt"
 
 # argument declarations
 NAMEARG="-n" # the name of this trial run. Will be listed as this in the output file
@@ -56,6 +56,14 @@ output_name=
 host=
 host_password=
 file_to_send=
+time= # used to capture time from time.txt
+real_time=
+user_time=
+sys_time=
+size=
+delta=
+throughput=
+trial_num=
 
 # misc variables
 declare -i arg_iterator=$#
@@ -72,7 +80,6 @@ OUTPUTFILEERROR="[*] Output file specified by $OUTPUTARG cannot be found...gener
 # function declarations
 ##########################################################################################
 
-#### FUNCTION NAME: parse_args
 #### FUNCTION PURPOSE: attempts to assign all command line args to their variables then
 ####                   checks to make sure each argument was passed in and is non-empty
 function parse_args
@@ -97,7 +104,7 @@ function parse_args
         exit
     fi
 }
-#### FUNCTION NAME: verify_args
+
 #### FUNCTION PURPOSE: verifies that the file passed in with the $FILESIZEARG parameter #                      exists and checks that the output file does too, creating this if
 #                      necessary
 function verify_args
@@ -105,11 +112,10 @@ function verify_args
     # check that the file exists
     if [ ! -f $output_name ]; then
         echo "Unable to find an output file called [$output_name]... Generating file..."
-        touch $output_name.csv
+        touch $output_name
     fi
 }
 
-#### FUNCTION NAME: print_args
 #### FUNCTION PURPOSE: useful for debugging, prints all arguments passed in via command line
 function print_args
 {
@@ -120,7 +126,6 @@ function print_args
     done
 }
 
-#### FUNCTION NAME: verify_overwrite_is_okay
 #### FUNCTION PURPOSE: to ensure the user knows we'll overwrite files named $TEST_FILE_NAME
 function verify_overwrite_is_okay
 {
@@ -132,20 +137,12 @@ function verify_overwrite_is_okay
     fi
 }
 
-#### FUNCTION NAME: clean
 #### FUNCTION PUTPOSE: removes the $TEST_FILE_NAME file/directory locally and remotely
 function clean
 {
-    printf "[*] Cleaning up...\n"
-    printf "\tRemoving [$TEST_FILE_NAME] from local and client..."
-    rm -rf $TEST_FILE_NAME
-    printf "done\n"
-    echo "\t[!] TODO: CLEAN [$TEST_FILE_NAME] from client"
-    printf "    ...done\n"
-
+    echo "[!] TODO: write clean function"
 }
 
-#### FUNCTION NAME: get_host_password
 #### FUNCTION PUTPOSE: retreive the password of the server
 function get_host_password
 {
@@ -154,7 +151,6 @@ function get_host_password
     printf "\n"
 }
 
-#### FUNCTION NAME: verify_files_to_transfer
 #### FUNCTION PUTPOSE: check that the files we hope to transfer are here locally
 function verify_files_to_transfer
 {
@@ -173,19 +169,29 @@ function verify_files_to_transfer
     done
 }
 
+#### FUNCTION PURPOSE: will use rsync to sync file $1 to the host $2 at host destination $3
+####                   using password $4
 function sync_file
 {
+    echo "syncing file"
     ./$SYNC_FILE_SCRIPT $1 $host $2 $host_password
 }
 
+#### FUNCTION PURPOSE: used at the beginning of the benchmark, this function moves the base
+####                   directory over to the remote machine
 function stage_files
 {
+    echo "staging files"
     # move staging dir over
     sync_file $PATH_TO_RSYNCMARK_FILE_DIR $REMOTE_DIR_BASE_LOCATION
 }
 
+#### FUNCTION PURPOSE: This function is used at the beginning of each sync. It moves the "old" files from
+####                   the staging dir on the remote location to the target dir so that the files in the
+####                   target are reverted back to their old stage
 function move_files_from_staging_to_target
 {
+    echo "moving files from staging to target"
     ./$SSH_MOVE_FILES_SCRIPT $host $host_password $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$STAGING_DIR_NAME $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$TARGET_DIR_NAME
 }
 
@@ -201,7 +207,86 @@ function remove_staging_and_target_dirs
 
 function warm_up
 {
-    move_files_from_staging_to_target
+    echo "warming up..."
+    #repeat x number of times:
+    for i in {1..10}; do
+        # reset files
+        move_files_from_staging_to_target
+
+        # sync large files
+        ./$SYNC_FILE_SCRIPT $PATH_TO_NEW_FILES/$LARGE_FILE_NAME $host $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$TARGET_DIR_NAME $host_password
+
+        # sync medium files
+        ./$SYNC_FILE_SCRIPT $PATH_TO_NEW_FILES/$MEDIUM_FILE_NAME $host $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$TARGET_DIR_NAME $host_password
+
+        # sync small
+        ./$SYNC_FILE_SCRIPT $PATH_TO_NEW_FILES/$SMALL_FILE_NAME $host $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$TARGET_DIR_NAME $host_password
+
+    done
+    }
+
+function run_trials
+{
+    # output file layout:
+    # trial_name, real_time, user_time, sys_time, throughput, size, delta, trial_num
+    #repeat 30 times:
+        # move files to target
+    #move_files_from_staging_to_target
+    for i in {1..10}; do
+        # reset files
+        move_files_from_staging_to_target
+
+        # sync large files
+        # { time -p plz_work 1>dump.txt ; } 2>time.txt
+        { time -p $(./$SYNC_FILE_SCRIPT $PATH_TO_NEW_FILES/$LARGE_FILE_NAME $host $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$TARGET_DIR_NAME $host_password) 1>dump.txt ; } 2>time.txt
+
+        get_time real
+        real_time=$time
+
+        get_time user
+        user_time=$time
+
+        get_time sys
+        sys_time=$time
+
+        throughput=throughput
+        delta=delta
+        trial_num=$1
+
+        line="$trial_name, $real_time, $user_time, $sys_time, throughput_TODO, size_TODO, delta_TODO, $i"
+
+        echo $line >> $output_name
+
+        # record time
+
+        # sync medium
+        # record time
+
+        # sync small
+        # record time
+
+        # remove time and dump files
+        rm time.txt
+        rm dump.txt
+
+    done
+}
+
+# $1 should indicate the file size
+function sync_time
+{
+    if [ $1 == "real" ]; then
+        echo "real"
+    elif [ $1 == "user" ]; then
+        echo "user"
+    elif [ $1 == "sys" ]; then
+        echo "sys"
+    fi
+}
+
+function get_time
+{
+    time=$(cat $TIME_FILE_NAME | grep $1 | awk '{print $2}')
 }
 
 
@@ -222,10 +307,15 @@ get_host_password
 
 stage_files
 
-warm_up
+#warm_up
+
+run_trials
 
 # clean up files locally and in client
 #clean
+
+rm dump.txt
+rm time.txt
 
 # remind the user where their ouput is
 # echo "[*] You can find this trial's statistics in the output file $output_name"

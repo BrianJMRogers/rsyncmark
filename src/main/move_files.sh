@@ -21,7 +21,7 @@ expect {
     }
     "$ "
     {
-        send "rsync -a $staging_dir/ $target_dir\r"
+        send "rsync -a --delete $staging_dir/ $target_dir\r"
         send "exit\r"
     }
 }
