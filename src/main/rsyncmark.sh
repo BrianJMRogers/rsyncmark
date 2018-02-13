@@ -231,57 +231,74 @@ function run_trials
     # trial_name, real_time, user_time, sys_time, throughput, size, delta, trial_num
     #repeat 30 times:
         # move files to target
-    #move_files_from_staging_to_target
+    # sync large files
     for i in {1..10}; do
-        # reset files
-        move_files_from_staging_to_target
-
-        # sync large files
-        # { time -p plz_work 1>dump.txt ; } 2>time.txt
-        { time -p $(./$SYNC_FILE_SCRIPT $PATH_TO_NEW_FILES/$LARGE_FILE_NAME $host $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$TARGET_DIR_NAME $host_password) 1>dump.txt ; } 2>time.txt
-
-        get_time real
-        real_time=$time
-
-        get_time user
-        user_time=$time
-
-        get_time sys
-        sys_time=$time
-
-        throughput=throughput
-        delta=delta
-        trial_num=$1
-
-        line="$trial_name, $real_time, $user_time, $sys_time, throughput_TODO, size_TODO, delta_TODO, $i"
-
-        echo $line >> $output_name
-
-        # record time
-
-        # sync medium
-        # record time
-
-        # sync small
-        # record time
-
-        # remove time and dump files
-        rm time.txt
-        rm dump.txt
-
+        sync_file_record_output large
     done
+
+    for i in {1..10}; do
+        sync_file_record_output medium
+    done
+
+
+    for i in {1..10}; do
+        sync_file_record_output small
+    done
+
 }
 
-# $1 should indicate the file size
-function sync_time
+# $1 should indicate the file size, $2 indicates trial number
+function sync_file_record_output
 {
-    if [ $1 == "real" ]; then
-        echo "real"
-    elif [ $1 == "user" ]; then
-        echo "user"
-    elif [ $1 == "sys" ]; then
-        echo "sys"
+    file=
+    if [ $1 == "large" ]; then
+        echo "large"
+        file=$LARGE_FILE_NAME
+    elif [ $1 == "medium" ]; then
+        echo "medium"
+        file=$MEDIUM_FILE_NAME
+    elif [ $1 == "small" ]; then
+        echo "small"
+        file=$MEDIUM_FILE_NAME
     fi
+
+    # reset files
+    move_files_from_staging_to_target
+
+    # sync large files
+    # { time -p plz_work 1>dump.txt ; } 2>time.txt
+    { time -p $(./$SYNC_FILE_SCRIPT $PATH_TO_NEW_FILES/$file $host $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$TARGET_DIR_NAME $host_password) 1>dump.txt ; } 2>time.txt
+
+    get_time real
+    real_time=$time
+
+    get_time user
+    user_time=$time
+
+    get_time sys
+    sys_time=$time
+
+    throughput=throughput
+    delta=delta
+    trial_num=$2
+    size=$1
+
+    line="$trial_name, $real_time, $user_time, $sys_time, throughput_TODO, $size, delta_TODO, $i"
+
+    echo $line >> $output_name
+
+    # record time
+
+    # sync medium
+    # record time
+
+    # sync small
+    # record time
+
+    # remove time and dump files
+    rm time.txt
+    rm dump.txt
+
 }
 
 function get_time
