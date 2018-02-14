@@ -1,1 +1,0 @@
-This directory has come from the rsync benchmark rsyncmark. If you are reading this, an error occured (rsyncmark should delete this directory). You no longer need this directory. Feel free to delete it!

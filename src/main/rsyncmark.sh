@@ -30,16 +30,18 @@ STAGING_DIR_NAME="staging"
 TARGET_DIR_NAME="target"
 
 #testing
-PATH_TO_RSYNCMARK_FILE_DIR="../../files_test/rsyncmark" # this is the path to these files locally
-PATH_TO_NEW_FILES="../../files_test/new"
-PATH_TO_OLD_FILES="../../files_test/old"
-#PATH_TO_STAGING_DIR="../../files/staging_files" # this is the path to these files locally
-#PATH_TO_NEW_FILES="../../files/new"
-#PATH_TO_OLD_FILES="../../files/old"
+#PATH_TO_RSYNCMARK_FILE_DIR="../../files_test/rsyncmark" # this is the path to these files locally
+#PATH_TO_NEW_FILES="../../files_test/new"
+#PATH_TO_OLD_FILES="../../files_test/old"
+PATH_TO_RSYNCMARK_FILE_DIR="../../files/rsyncmark" # this is the path to these files locally
+PATH_TO_NEW_FILES="../../files/new"
+PATH_TO_OLD_FILES="../../files/old"
 LARGE_FILE_NAME="large_rails"
 MEDIUM_FILE_NAME="medium_bootstrap"
 SMALL_FILE_NAME="small_homebrew"
 TIME_FILE_NAME="time.txt"
+RSYNC_OUTPUT_DUMP_FILE="rsync_output.txt" #this is used to capture the output of each timed rsync run
+OUTPUT_HEADER="trial_name,real_time_seconds,user_time_seconds,sys_time_seconds,throughput_bytes_per_second,file_size_name,file_size_bytes,delta_size_bytes,trial_num"
 
 # argument declarations
 NAMEARG="-n" # the name of this trial run. Will be listed as this in the output file
@@ -113,7 +115,7 @@ function verify_args
     # check that the file exists
     if [ ! -f $output_name ]; then
         echo "Unable to find an output file called [$output_name]... Generating file..."
-        touch $output_name
+        echo $OUTPUT_HEADER > $output_name
     fi
 }
 
@@ -226,19 +228,18 @@ function run_trials
     #repeat 30 times:
         # move files to target
     # sync large files
-    for i in {1..10}; do
+    for i in {1..2}; do
         sync_file_record_output large
     done
 
-    for i in {1..10}; do
+    for i in {1..2}; do
         sync_file_record_output medium
     done
 
 
-    for i in {1..10}; do
+    for i in {1..2}; do
         sync_file_record_output small
     done
-
 }
 
 #### FUNCTION PURPOSE: sync each file and record the output
@@ -260,25 +261,27 @@ function sync_file_record_output
     # reset files
     move_files_from_staging_to_target
 
-    # sync large files
-    # { time -p plz_work 1>dump.txt ; } 2>time.txt
-    { time -p $(./$SYNC_FILE_SCRIPT $PATH_TO_NEW_FILES/$file $host $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$TARGET_DIR_NAME $host_password) 1>dump.txt ; } 2>time.txt
+    yao=
 
+    # sync large files
+    { time -p $(./$SYNC_FILE_SCRIPT $PATH_TO_NEW_FILES/$file $host $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$TARGET_DIR_NAME $host_password>$RSYNC_OUTPUT_DUMP_FILE 2>&1) 1>dump.txt ; } 2>time.txt
+
+    # record times
     get_time real
     real_time=$time
-
     get_time user
     user_time=$time
-
     get_time sys
     sys_time=$time
 
-    throughput=throughput
-    delta=delta
+    # grep througput out of $RSYNC_OUTPUT_FILE
+    delta=$(cat $RSYNC_OUTPUT_DUMP_FILE | grep sent | grep received | grep "bytes/sec" | awk '{print $2}')
+    throughput=$(cat $RSYNC_OUTPUT_DUMP_FILE | grep sent | grep received | grep "bytes/sec" | awk '{print $7}')
     trial_num=$2
-    size=$1
+    size_name=$1
+    size_bytes=$(cat $RSYNC_OUTPUT_DUMP_FILE | grep total | grep size | grep is | awk '{print $4}')
 
-    line="$trial_name, $real_time, $user_time, $sys_time, throughput_TODO, $size, delta_TODO, $i"
+    line="$trial_name, $real_time, $user_time, $sys_time, $throughput, $size_name, $size_bytes, $delta, $i"
 
     echo $line >> $output_name
 
@@ -291,9 +294,9 @@ function sync_file_record_output
     # record time
 
     # remove time and dump files
-    rm time.txt
+    rm $TIME_FILE_NAME
     rm dump.txt
-
+    rm $RSYNC_OUTPUT_DUMP_FILE
 }
 
 #### FUNCTION PURPOSE: retreive the time from the file $TIME_FILE_NAME specified by $1 (real, user, sys)
@@ -314,7 +317,7 @@ verify_args
 
 #verify_overwrite_is_okay
 
-print_args # uncomment when needed
+#print_args # uncomment when needed
 
 get_host_password
 

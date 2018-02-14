@@ -20,5 +20,4 @@ expect {
         send "$pass\r"
     }
 }
-
 expect eof
