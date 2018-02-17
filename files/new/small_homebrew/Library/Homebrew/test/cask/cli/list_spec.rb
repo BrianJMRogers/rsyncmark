@@ -1,8 +1,4 @@
-require_relative "shared_examples/invalid_option"
-
 describe Hbc::CLI::List, :cask do
-  it_behaves_like "a command that handles invalid options"
-
   it "lists the installed Casks in a pretty fashion" do
     casks = %w[local-caffeine local-transmission].map { |c| Hbc::CaskLoader.load(c) }
 
@@ -11,8 +7,8 @@ describe Hbc::CLI::List, :cask do
     end
 
     expect {
-      described_class.run
-    }.to output(<<~EOS).to_stdout
+      Hbc::CLI::List.run
+    }.to output(<<-EOS.undent).to_stdout
       local-caffeine
       local-transmission
     EOS
@@ -30,8 +26,8 @@ describe Hbc::CLI::List, :cask do
     end
 
     expect {
-      described_class.run("--full-name")
-    }.to output(<<~EOS).to_stdout
+      Hbc::CLI::List.run("--full-name")
+    }.to output(<<-EOS.undent).to_stdout
       local-caffeine
       local-transmission
       third-party/tap/third-party-cask
@@ -41,7 +37,7 @@ describe Hbc::CLI::List, :cask do
   describe "lists versions" do
     let(:casks) { ["local-caffeine", "local-transmission"] }
     let(:expected_output) {
-      <<~EOS
+      <<-EOS.undent
         local-caffeine 1.2.3
         local-transmission 2.61
       EOS
@@ -53,36 +49,35 @@ describe Hbc::CLI::List, :cask do
 
     it "of all installed Casks" do
       expect {
-        described_class.run("--versions")
+        Hbc::CLI::List.run("--versions")
       }.to output(expected_output).to_stdout
     end
 
     it "of given Casks" do
       expect {
-        described_class.run("--versions", "local-caffeine", "local-transmission")
+        Hbc::CLI::List.run("--versions", "local-caffeine", "local-transmission")
       }.to output(expected_output).to_stdout
     end
   end
 
   describe "given a set of installed Casks" do
-    let(:caffeine) { Hbc::CaskLoader.load(cask_path("local-caffeine")) }
-    let(:transmission) { Hbc::CaskLoader.load(cask_path("local-transmission")) }
+    let(:caffeine) { Hbc::CaskLoader.load_from_file(TEST_FIXTURE_DIR/"cask/Casks/local-caffeine.rb") }
+    let(:transmission) { Hbc::CaskLoader.load_from_file(TEST_FIXTURE_DIR/"cask/Casks/local-transmission.rb") }
     let(:casks) { [caffeine, transmission] }
 
     it "lists the installed files for those Casks" do
       casks.each(&InstallHelper.method(:install_without_artifacts_with_caskfile))
 
-      transmission.artifacts.select { |a| a.is_a?(Hbc::Artifact::App) }.each do |artifact|
-        artifact.install_phase(command: Hbc::NeverSudoSystemCommand, force: false)
-      end
+      Hbc::Artifact::App.for_cask(transmission)
+        .each { |artifact| artifact.install_phase(command: Hbc::NeverSudoSystemCommand, force: false) }
 
       expect {
-        described_class.run("local-transmission", "local-caffeine")
-      }.to output(<<~EOS).to_stdout
+        Hbc::CLI::List.run("local-transmission", "local-caffeine")
+      }.to output(<<-EOS.undent).to_stdout
         ==> Apps
-        #{Hbc::Config.global.appdir.join("Transmission.app")} (#{Hbc::Config.global.appdir.join("Transmission.app").abv})
+        #{Hbc.appdir.join("Transmission.app")} (#{Hbc.appdir.join("Transmission.app").abv})
         ==> Apps
-        Missing App: #{Hbc::Config.global.appdir.join("Caffeine.app")}
+        Missing App: #{Hbc.appdir.join("Caffeine.app")}
       EOS
     end
   end

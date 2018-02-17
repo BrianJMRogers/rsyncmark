@@ -1,3 +1,6 @@
+require "rubocop"
+require "rubocop/rspec/support"
+require_relative "../../extend/string"
 require_relative "../../rubocops/homepage_cop"
 
 describe RuboCop::Cop::FormulaAudit::Homepage do
@@ -5,7 +8,7 @@ describe RuboCop::Cop::FormulaAudit::Homepage do
 
   context "When auditing homepage" do
     it "When there is no homepage" do
-      source = <<~EOS
+      source = <<-EOS.undent
         class Foo < Formula
           url 'http://example.com/foo-1.0.tgz'
         end
@@ -17,7 +20,7 @@ describe RuboCop::Cop::FormulaAudit::Homepage do
                               column: 0,
                               source: source }]
 
-      inspect_source(source)
+      inspect_source(cop, source)
 
       expected_offenses.zip(cop.offenses).each do |expected, actual|
         expect_offense(expected, actual)
@@ -25,7 +28,7 @@ describe RuboCop::Cop::FormulaAudit::Homepage do
     end
 
     it "Homepage with ftp" do
-      source = <<~EOS
+      source = <<-EOS.undent
         class Foo < Formula
           homepage "ftp://example.com/foo"
           url "http://example.com/foo-1.0.tgz"
@@ -38,7 +41,7 @@ describe RuboCop::Cop::FormulaAudit::Homepage do
                               column: 2,
                               source: source }]
 
-      inspect_source(source)
+      inspect_source(cop, source)
 
       expected_offenses.zip(cop.offenses).each do |expected, actual|
         expect_offense(expected, actual)
@@ -62,14 +65,14 @@ describe RuboCop::Cop::FormulaAudit::Homepage do
       }
 
       formula_homepages.each do |name, homepage|
-        source = <<~EOS
+        source = <<-EOS.undent
           class #{name.capitalize} < Formula
             homepage "#{homepage}"
             url "http://example.com/#{name}-1.0.tgz"
           end
         EOS
 
-        inspect_source(source)
+        inspect_source(cop, source)
         if homepage =~ %r{http:\/\/www\.freedesktop\.org}
           if homepage =~ /Software/
             expected_offenses = [{  message: "#{homepage} should be styled " \

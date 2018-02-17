@@ -1,13 +1,11 @@
-require_relative "shared_examples/invalid_option"
-
 describe Hbc::CLI::Outdated, :cask do
   let(:installed) do
     [
-      Hbc::CaskLoader.load(cask_path("basic-cask")),
-      Hbc::CaskLoader.load(cask_path("outdated/local-caffeine")),
-      Hbc::CaskLoader.load(cask_path("outdated/local-transmission")),
-      Hbc::CaskLoader.load(cask_path("version-latest-string")),
-      Hbc::CaskLoader.load(cask_path("outdated/auto-updates")),
+      Hbc::CaskLoader.load_from_file(TEST_FIXTURE_DIR/"cask/Casks/basic-cask.rb"),
+      Hbc::CaskLoader.load_from_file(TEST_FIXTURE_DIR/"cask/Casks/outdated/local-caffeine.rb"),
+      Hbc::CaskLoader.load_from_file(TEST_FIXTURE_DIR/"cask/Casks/outdated/local-transmission.rb"),
+      Hbc::CaskLoader.load_from_file(TEST_FIXTURE_DIR/"cask/Casks/version-latest-string.rb"),
+      Hbc::CaskLoader.load_from_file(TEST_FIXTURE_DIR/"cask/Casks/outdated/auto-updates.rb"),
     ]
   end
 
@@ -17,13 +15,11 @@ describe Hbc::CLI::Outdated, :cask do
     allow_any_instance_of(described_class).to receive(:verbose?).and_return(true)
   end
 
-  it_behaves_like "a command that handles invalid options"
-
   describe 'without --greedy it ignores the Casks with "vesion latest" or "auto_updates true"' do
     it "checks all the installed Casks when no token is provided" do
       expect {
         described_class.run
-      }.to output(<<~EOS).to_stdout
+      }.to output(<<-EOS.undent).to_stdout
         local-caffeine (1.2.2) != 1.2.3
         local-transmission (2.60) != 2.61
       EOS
@@ -32,7 +28,7 @@ describe Hbc::CLI::Outdated, :cask do
     it "checks only the tokens specified in the command line" do
       expect {
         described_class.run("local-caffeine")
-      }.to output(<<~EOS).to_stdout
+      }.to output(<<-EOS.undent).to_stdout
         local-caffeine (1.2.2) != 1.2.3
       EOS
     end
@@ -40,7 +36,7 @@ describe Hbc::CLI::Outdated, :cask do
     it 'ignores "auto_updates" and "latest" Casks even when their tokens are provided in the command line' do
       expect {
         described_class.run("local-caffeine", "auto-updates", "version-latest-string")
-      }.to output(<<~EOS).to_stdout
+      }.to output(<<-EOS.undent).to_stdout
         local-caffeine (1.2.2) != 1.2.3
       EOS
     end
@@ -54,7 +50,7 @@ describe Hbc::CLI::Outdated, :cask do
     it "lists only the names (no versions) of the outdated Casks with --quiet" do
       expect {
         described_class.run("--verbose", "--quiet")
-      }.to output(<<~EOS).to_stdout
+      }.to output(<<-EOS.undent).to_stdout
         local-caffeine
         local-transmission
       EOS
@@ -65,7 +61,7 @@ describe Hbc::CLI::Outdated, :cask do
     it 'includes the Casks with "auto_updates true" or "version latest" with --greedy' do
       expect {
         described_class.run("--greedy")
-      }.to output(<<~EOS).to_stdout
+      }.to output(<<-EOS.undent).to_stdout
         auto-updates (2.57) != 2.61
         local-caffeine (1.2.2) != 1.2.3
         local-transmission (2.60) != 2.61
@@ -74,12 +70,12 @@ describe Hbc::CLI::Outdated, :cask do
     end
 
     it 'does not include the Casks with "auto_updates true" when the version did not change' do
-      cask = Hbc::CaskLoader.load(cask_path("auto-updates"))
+      cask = Hbc::CaskLoader.load_from_file(TEST_FIXTURE_DIR/"cask/Casks/auto-updates.rb")
       InstallHelper.install_with_caskfile(cask)
 
       expect {
         described_class.run("--greedy")
-      }.to output(<<~EOS).to_stdout
+      }.to output(<<-EOS.undent).to_stdout
         local-caffeine (1.2.2) != 1.2.3
         local-transmission (2.60) != 2.61
         version-latest-string (latest) != latest

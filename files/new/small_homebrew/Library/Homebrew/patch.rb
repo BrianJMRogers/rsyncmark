@@ -60,13 +60,15 @@ class EmbeddedPatch
     false
   end
 
-  def contents; end
+  def contents
+  end
 
   def apply
     data = contents.gsub("HOMEBREW_PREFIX", HOMEBREW_PREFIX)
+    cmd = "/usr/bin/patch"
     args = %W[-g 0 -f -#{strip}]
-    Utils.popen_write("patch", *args) { |p| p.write(data) }
-    raise ErrorDuringExecution.new("patch", args) unless $CHILD_STATUS.success?
+    IO.popen("#{cmd} #{args.join(" ")}", "w") { |p| p.write(data) }
+    raise ErrorDuringExecution.new(cmd, args) unless $CHILD_STATUS.success?
   end
 
   def inspect
@@ -85,13 +87,10 @@ class DATAPatch < EmbeddedPatch
   def contents
     data = ""
     path.open("rb") do |f|
-      loop do
+      begin
         line = f.gets
-        break if line.nil? || line =~ /^__END__$/
-      end
-      while line = f.gets
-        data << line
-      end
+      end until line.nil? || line =~ /^__END__$/
+      data << line while line = f.gets
     end
     data
   end
@@ -119,7 +118,7 @@ class ExternalPatch
 
   def initialize(strip, &block)
     @strip    = strip
-    @resource = Resource::PatchResource.new(&block)
+    @resource = Resource::Patch.new(&block)
   end
 
   def external?
@@ -138,7 +137,7 @@ class ExternalPatch
       if patch_files.empty?
         children = patch_dir.children
         if children.length != 1 || !children.first.file?
-          raise MissingApplyError, <<~EOS
+          raise MissingApplyError, <<-EOS.undent
             There should be exactly one patch file in the staging directory unless
             the "apply" method was used one or more times in the patch-do block.
           EOS
@@ -149,7 +148,7 @@ class ExternalPatch
         patch_files.each do |patch_file|
           ohai "Applying #{patch_file}"
           patch_file = patch_dir/patch_file
-          safe_system "patch", "-g", "0", "-f", "-#{strip}", "-i", patch_file
+          safe_system "/usr/bin/patch", "-g", "0", "-f", "-#{strip}", "-i", patch_file
         end
       end
     end

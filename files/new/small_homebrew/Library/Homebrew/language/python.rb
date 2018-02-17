@@ -23,7 +23,7 @@ module Language
         else
           homebrew_site_packages(version)
         end
-        block&.call python, version
+        block.call python, version if block
       end
       ENV["PYTHONPATH"] = original_pythonpath
     end
@@ -35,7 +35,7 @@ module Language
       probe_file = homebrew_site_packages(version)/"homebrew-pth-probe.pth"
       begin
         probe_file.atomic_write("import site; site.homebrew_was_here = True")
-        with_homebrew_path { quiet_system python, "-c", "import site; assert(site.homebrew_was_here)" }
+        quiet_system python, "-c", "import site; assert(site.homebrew_was_here)"
       ensure
         probe_file.unlink if probe_file.exist?
       end
@@ -46,7 +46,7 @@ module Language
     end
 
     def self.in_sys_path?(python, path)
-      script = <<~EOS
+      script = <<-EOS.undent
         import os, sys
         [os.path.realpath(p) for p in sys.path].index(os.path.realpath("#{path}"))
       EOS
@@ -54,7 +54,7 @@ module Language
     end
 
     def self.setup_install_args(prefix)
-      shim = <<~EOS
+      shim = <<-EOS.undent
         import setuptools, tokenize
         __file__ = 'setup.py'
         exec(compile(getattr(tokenize, 'open', open)(__file__).read()
@@ -69,6 +69,10 @@ module Language
         --single-version-externally-managed
         --record=installed.txt
       ]
+    end
+
+    def self.package_available?(python, module_name)
+      quiet_system python, "-c", "import #{module_name}"
     end
 
     # Mixin module for {Formula} adding virtualenv support features.
@@ -134,11 +138,11 @@ module Language
       def virtualenv_install_with_resources(options = {})
         python = options[:using]
         if python.nil?
-          wanted = %w[python python@2 python@3 python3].select { |py| needs_python?(py) }
+          wanted = %w[python python3].select { |py| needs_python?(py) }
           raise FormulaAmbiguousPythonError, self if wanted.size > 1
-          python = wanted.first || "python2.7"
+          python = wanted.first || "python"
         end
-        venv = virtualenv_create(libexec, python.delete("@"))
+        venv = virtualenv_create(libexec, python)
         venv.pip_install resources
         venv.pip_install_and_link buildpath
         venv
@@ -241,7 +245,7 @@ module Language
                           "-v", "--no-deps", "--no-binary", ":all:",
                           "--ignore-installed", *targets
         end
-      end
-    end
-  end
-end
+      end # class Virtualenv
+    end # module Virtualenv
+  end # module Python
+end # module Language

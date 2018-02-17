@@ -1,13 +1,11 @@
 require "open3"
 require "rubygems"
 
-require_relative "shared_examples/invalid_option"
-
 describe Hbc::CLI::Style, :cask do
   let(:args) { [] }
   let(:cli) { described_class.new(*args) }
 
-  it_behaves_like "a command that handles invalid options"
+  around(&:run)
 
   describe "#run" do
     subject { cli.run }
@@ -22,10 +20,7 @@ describe Hbc::CLI::Style, :cask do
 
     context "when rubocop succeeds" do
       let(:success) { true }
-
-      it "does not raise an error" do
-        expect { subject }.not_to raise_error
-      end
+      it { is_expected.to be_truthy }
     end
 
     context "when rubocop fails" do
@@ -135,7 +130,7 @@ describe Hbc::CLI::Style, :cask do
   describe "#default_args" do
     subject { cli.default_args }
 
-    it { is_expected.to include("--require", "rubocop-cask", "--format", "simple") }
+    it { is_expected.to include("--require", "rubocop-cask", "--format", "simple", "--force-exclusion") }
   end
 
   describe "#autocorrect_args" do

@@ -1,45 +1,38 @@
-require_relative "shared_examples/requires_cask_token"
-require_relative "shared_examples/invalid_option"
-
 describe Hbc::CLI::Uninstall, :cask do
-  it_behaves_like "a command that requires a Cask token"
-  it_behaves_like "a command that handles invalid options"
-
   it "displays the uninstallation progress" do
-    caffeine = Hbc::CaskLoader.load(cask_path("local-caffeine"))
+    caffeine = Hbc::CaskLoader.load_from_file(TEST_FIXTURE_DIR/"cask/Casks/local-caffeine.rb")
 
     Hbc::Installer.new(caffeine).install
 
-    output = Regexp.new <<~EOS
+    output = Regexp.new <<-EOS.undent
       ==> Uninstalling Cask local-caffeine
-      ==> Moving App 'Caffeine.app' back to '.*Caffeine.app'.
-      ==> Purging files for version 1.2.3 of Cask local-caffeine
+      ==> Removing App '.*Caffeine.app'.
     EOS
 
     expect {
-      described_class.run("local-caffeine")
+      Hbc::CLI::Uninstall.run("local-caffeine")
     }.to output(output).to_stdout
   end
 
   it "shows an error when a bad Cask is provided" do
-    expect { described_class.run("notacask") }
+    expect { Hbc::CLI::Uninstall.run("notacask") }
       .to raise_error(Hbc::CaskUnavailableError, /is unavailable/)
   end
 
   it "shows an error when a Cask is provided that's not installed" do
-    expect { described_class.run("local-caffeine") }
+    expect { Hbc::CLI::Uninstall.run("local-caffeine") }
     .to raise_error(Hbc::CaskNotInstalledError, /is not installed/)
   end
 
   it "tries anyway on a non-present Cask when --force is given" do
     expect {
-      described_class.run("local-caffeine", "--force")
+      Hbc::CLI::Uninstall.run("local-caffeine", "--force")
     }.not_to raise_error
   end
 
   it "can uninstall and unlink multiple Casks at once" do
-    caffeine = Hbc::CaskLoader.load(cask_path("local-caffeine"))
-    transmission = Hbc::CaskLoader.load(cask_path("local-transmission"))
+    caffeine = Hbc::CaskLoader.load_from_file(TEST_FIXTURE_DIR/"cask/Casks/local-caffeine.rb")
+    transmission = Hbc::CaskLoader.load_from_file(TEST_FIXTURE_DIR/"cask/Casks/local-transmission.rb")
 
     Hbc::Installer.new(caffeine).install
     Hbc::Installer.new(transmission).install
@@ -47,46 +40,46 @@ describe Hbc::CLI::Uninstall, :cask do
     expect(caffeine).to be_installed
     expect(transmission).to be_installed
 
-    described_class.run("local-caffeine", "local-transmission")
+    Hbc::CLI::Uninstall.run("local-caffeine", "local-transmission")
 
     expect(caffeine).not_to be_installed
-    expect(Hbc::Config.global.appdir.join("Transmission.app")).not_to exist
+    expect(Hbc.appdir.join("Transmission.app")).not_to exist
     expect(transmission).not_to be_installed
-    expect(Hbc::Config.global.appdir.join("Caffeine.app")).not_to exist
+    expect(Hbc.appdir.join("Caffeine.app")).not_to exist
   end
 
   it "calls `uninstall` before removing artifacts" do
-    cask = Hbc::CaskLoader.load(cask_path("with-uninstall-script-app"))
+    cask = Hbc::CaskLoader.load_from_file(TEST_FIXTURE_DIR/"cask/Casks/with-uninstall-script-app.rb")
 
     Hbc::Installer.new(cask).install
 
     expect(cask).to be_installed
-    expect(Hbc::Config.global.appdir.join("MyFancyApp.app")).to exist
+    expect(Hbc.appdir.join("MyFancyApp.app")).to exist
 
     expect {
-      described_class.run("with-uninstall-script-app")
+      Hbc::CLI::Uninstall.run("with-uninstall-script-app")
     }.not_to raise_error
 
     expect(cask).not_to be_installed
-    expect(Hbc::Config.global.appdir.join("MyFancyApp.app")).not_to exist
+    expect(Hbc.appdir.join("MyFancyApp.app")).not_to exist
   end
 
   it "can uninstall Casks when the uninstall script is missing, but only when using `--force`" do
-    cask = Hbc::CaskLoader.load(cask_path("with-uninstall-script-app"))
+    cask = Hbc::CaskLoader.load_from_file(TEST_FIXTURE_DIR/"cask/Casks/with-uninstall-script-app.rb")
 
     Hbc::Installer.new(cask).install
 
     expect(cask).to be_installed
 
-    Hbc::Config.global.appdir.join("MyFancyApp.app").rmtree
+    Hbc.appdir.join("MyFancyApp.app").rmtree
 
-    expect { described_class.run("with-uninstall-script-app") }
+    expect { Hbc::CLI::Uninstall.run("with-uninstall-script-app") }
     .to raise_error(Hbc::CaskError, /uninstall script .* does not exist/)
 
     expect(cask).to be_installed
 
     expect {
-      described_class.run("with-uninstall-script-app", "--force")
+      Hbc::CLI::Uninstall.run("with-uninstall-script-app", "--force")
     }.not_to raise_error
 
     expect(cask).not_to be_installed
@@ -108,7 +101,7 @@ describe Hbc::CLI::Uninstall, :cask do
       timestamped_versions.each do |timestamped_version|
         caskroom_path.join(".metadata", *timestamped_version, "Casks").tap(&:mkpath)
                      .join("#{token}.rb").open("w") do |caskfile|
-                       caskfile.puts <<~EOS
+                       caskfile.puts <<-EOS.undent
                          cask '#{token}' do
                            version '#{timestamped_version[0]}'
                          end
@@ -119,13 +112,13 @@ describe Hbc::CLI::Uninstall, :cask do
     end
 
     it "uninstalls one version at a time" do
-      described_class.run("versioned-cask")
+      Hbc::CLI::Uninstall.run("versioned-cask")
 
       expect(caskroom_path.join(first_installed_version)).to exist
       expect(caskroom_path.join(last_installed_version)).not_to exist
       expect(caskroom_path).to exist
 
-      described_class.run("versioned-cask")
+      Hbc::CLI::Uninstall.run("versioned-cask")
 
       expect(caskroom_path.join(first_installed_version)).not_to exist
       expect(caskroom_path).not_to exist
@@ -134,14 +127,14 @@ describe Hbc::CLI::Uninstall, :cask do
     it "displays a message when versions remain installed" do
       expect {
         expect {
-          described_class.run("versioned-cask")
+          Hbc::CLI::Uninstall.run("versioned-cask")
         }.not_to output.to_stderr
       }.to output(/#{token} #{first_installed_version} is still installed./).to_stdout
     end
   end
 
   describe "when Casks in Taps have been renamed or removed" do
-    let(:app) { Hbc::Config.global.appdir.join("ive-been-renamed.app") }
+    let(:app) { Hbc.appdir.join("ive-been-renamed.app") }
     let(:caskroom_path) { Hbc.caskroom.join("ive-been-renamed").tap(&:mkpath) }
     let(:saved_caskfile) { caskroom_path.join(".metadata", "latest", "timestamp", "Casks").join("ive-been-renamed.rb") }
 
@@ -154,7 +147,7 @@ describe Hbc::CLI::Uninstall, :cask do
 
       saved_caskfile.dirname.mkpath
 
-      IO.write saved_caskfile, <<~EOS
+      IO.write saved_caskfile, <<-EOS.undent
         cask 'ive-been-renamed' do
           version :latest
 
@@ -164,10 +157,26 @@ describe Hbc::CLI::Uninstall, :cask do
     end
 
     it "can still uninstall those Casks" do
-      described_class.run("ive-been-renamed")
+      Hbc::CLI::Uninstall.run("ive-been-renamed")
 
       expect(app).not_to exist
       expect(caskroom_path).not_to exist
+    end
+  end
+
+  describe "when no Cask is specified" do
+    it "raises an exception" do
+      expect {
+        Hbc::CLI::Uninstall.run
+      }.to raise_error(Hbc::CaskUnspecifiedError)
+    end
+  end
+
+  describe "when no Cask is specified, but an invalid option" do
+    it "raises an exception" do
+      expect {
+        Hbc::CLI::Uninstall.run("--notavalidoption")
+      }.to raise_error(/invalid option/)
     end
   end
 end

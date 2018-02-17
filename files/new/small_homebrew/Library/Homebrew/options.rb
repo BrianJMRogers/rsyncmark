@@ -69,29 +69,29 @@ class Options
     @options.each(*args, &block)
   end
 
-  def <<(other)
-    @options << other
+  def <<(o)
+    @options << o
     self
   end
 
-  def +(other)
-    self.class.new(@options + other)
+  def +(o)
+    self.class.new(@options + o)
   end
 
-  def -(other)
-    self.class.new(@options - other)
+  def -(o)
+    self.class.new(@options - o)
   end
 
-  def &(other)
-    self.class.new(@options & other)
+  def &(o)
+    self.class.new(@options & o)
   end
 
-  def |(other)
-    self.class.new(@options | other)
+  def |(o)
+    self.class.new(@options | o)
   end
 
-  def *(other)
-    @options.to_a * other
+  def *(arg)
+    @options.to_a * arg
   end
 
   def empty?

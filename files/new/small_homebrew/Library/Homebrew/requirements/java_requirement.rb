@@ -10,8 +10,8 @@ class JavaRequirement < Requirement
     next true
   end
 
-  def initialize(tags = [])
-    @version = tags.shift if /(\d+\.)+\d/ =~ tags.first
+  def initialize(tags)
+    @version = tags.shift if /(\d\.)+\d/ =~ tags.first
     super
   end
 
@@ -69,14 +69,14 @@ class JavaRequirement < Requirement
     rescue FormulaUnavailableError
       nil
     end
-    javas << jdk.bin/"java" if jdk&.installed?
+    javas << jdk.bin/"java" if jdk && jdk.installed?
     javas << which("java")
     javas
   end
 
   def preferred_java
     possible_javas.detect do |java|
-      next false unless java&.executable?
+      next false unless java && java.executable?
       next true unless @version
       next true if satisfies_version(java)
     end
@@ -103,7 +103,7 @@ class JavaRequirement < Requirement
   end
 
   def satisfies_version(java)
-    java_version_s = Utils.popen_read(java, "-version", err: :out)[/\d+.\d/]
+    java_version_s = Utils.popen_read("#{java} -version 2>&1")[/1.\d/]
     return false unless java_version_s
     java_version = Version.create(java_version_s)
     needed_version = Version.create(version_without_plus)

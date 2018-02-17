@@ -1,11 +1,11 @@
 describe Hbc::Artifact::App, :cask do
-  let(:cask) { Hbc::CaskLoader.load(cask_path("local-caffeine")) }
+  let(:cask) { Hbc::CaskLoader.load_from_file(TEST_FIXTURE_DIR/"cask/Casks/local-caffeine.rb") }
   let(:command) { Hbc::SystemCommand }
   let(:force) { false }
-  let(:app) { cask.artifacts.find { |a| a.is_a?(described_class) } }
+  let(:app) { described_class.for_cask(cask).first }
 
   let(:source_path) { cask.staged_path.join("Caffeine.app") }
-  let(:target_path) { Hbc::Config.global.appdir.join("Caffeine.app") }
+  let(:target_path) { Hbc.appdir.join("Caffeine.app") }
 
   let(:install_phase) { app.install_phase(command: command, force: force) }
   let(:uninstall_phase) { app.uninstall_phase(command: command, force: force) }
@@ -53,7 +53,7 @@ describe Hbc::Artifact::App, :cask do
       expect(target_path).to be_a_directory
       expect(source_path).not_to exist
 
-      expect(Hbc::Config.global.appdir.join("Caffeine Deluxe.app")).not_to exist
+      expect(Hbc.appdir.join("Caffeine Deluxe.app")).not_to exist
       expect(cask.staged_path.join("Caffeine Deluxe.app")).to exist
     end
 
@@ -82,12 +82,12 @@ describe Hbc::Artifact::App, :cask do
 
         describe "target is both writable and user-owned" do
           it "overwrites the existing app" do
-            stdout = <<~EOS
+            stdout = <<-EOS.undent
               ==> Removing App '#{target_path}'.
               ==> Moving App 'Caffeine.app' to '#{target_path}'.
             EOS
 
-            stderr = <<~EOS
+            stderr = <<-EOS.undent
               Warning: It seems there is already an App at '#{target_path}'; overwriting.
             EOS
 
@@ -117,12 +117,12 @@ describe Hbc::Artifact::App, :cask do
             expect(command).to receive(:run).with("/usr/bin/chflags", args: ["-R", "--", "000", target_path], must_succeed: false)
               .and_call_original
 
-            stdout = <<~EOS
+            stdout = <<-EOS.undent
               ==> Removing App '#{target_path}'.
               ==> Moving App 'Caffeine.app' to '#{target_path}'.
             EOS
 
-            stderr = <<~EOS
+            stderr = <<-EOS.undent
               Warning: It seems there is already an App at '#{target_path}'; overwriting.
             EOS
 
@@ -162,12 +162,12 @@ describe Hbc::Artifact::App, :cask do
         let(:force) { true }
 
         it "overwrites the existing app" do
-          stdout = <<~EOS
+          stdout = <<-EOS.undent
             ==> Removing App '#{target_path}'.
             ==> Moving App 'Caffeine.app' to '#{target_path}'.
           EOS
 
-          stderr = <<~EOS
+          stderr = <<-EOS.undent
             Warning: It seems there is already an App at '#{target_path}'; overwriting.
           EOS
 

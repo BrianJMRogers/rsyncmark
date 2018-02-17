@@ -5,12 +5,8 @@ end
 std_trap = trap("INT") { exit! 130 } # no backtrace thanks
 
 # check ruby version before requiring any modules.
-RUBY_VERSION_SPLIT = RUBY_VERSION.split "."
-RUBY_X = RUBY_VERSION_SPLIT[0].to_i
-RUBY_Y = RUBY_VERSION_SPLIT[1].to_i
-if RUBY_X < 2 || (RUBY_X == 2 && RUBY_Y < 3)
-  raise "Homebrew must be run under Ruby 2.3! You're running #{RUBY_VERSION}."
-end
+RUBY_TWO = RUBY_VERSION.split(".").first.to_i >= 2
+raise "Homebrew must be run under Ruby 2!" unless RUBY_TWO
 
 require "pathname"
 HOMEBREW_LIBRARY_PATH = Pathname.new(__FILE__).realpath.parent
@@ -33,6 +29,7 @@ begin
   empty_argv = ARGV.empty?
   help_flag_list = %w[-h --help --usage -?]
   help_flag = !ENV["HOMEBREW_HELP"].nil?
+  internal_cmd = true
   cmd = nil
 
   ARGV.dup.each_with_index do |arg, i|
@@ -49,6 +46,11 @@ begin
   path = PATH.new(ENV["PATH"])
   homebrew_path = PATH.new(ENV["HOMEBREW_PATH"])
 
+  # Add contributed commands to PATH before checking.
+  tap_cmds = Pathname.glob(Tap::TAP_DIRECTORY/"*/*/cmd")
+  path.append(tap_cmds)
+  homebrew_path.append(tap_cmds)
+
   # Add SCM wrappers.
   path.append(HOMEBREW_SHIMS_PATH/"scm")
   homebrew_path.append(HOMEBREW_SHIMS_PATH/"scm")
@@ -59,9 +61,8 @@ begin
     internal_cmd = require? HOMEBREW_LIBRARY_PATH/"cmd"/cmd
 
     unless internal_cmd
-      internal_dev_cmd = require? HOMEBREW_LIBRARY_PATH/"dev-cmd"/cmd
-      internal_cmd = internal_dev_cmd
-      if internal_dev_cmd && !ARGV.homebrew_developer?
+      internal_cmd = require? HOMEBREW_LIBRARY_PATH/"dev-cmd"/cmd
+      if internal_cmd && !ARGV.homebrew_developer?
         system "git", "config", "--file=#{HOMEBREW_REPOSITORY}/.git/config",
                                 "--replace-all", "homebrew.devcmdrun", "true"
         ENV["HOMEBREW_DEV_CMD_RUN"] = "1"
@@ -69,20 +70,11 @@ begin
     end
   end
 
-  unless internal_cmd
-    # Add contributed commands to PATH before checking.
-    homebrew_path.append(Tap.cmd_directories)
-
-    # External commands expect a normal PATH
-    ENV["PATH"] = homebrew_path
-  end
-
   # Usage instructions should be displayed if and only if one of:
   # - a help flag is passed AND a command is matched
   # - a help flag is passed AND there is no command specified
   # - no arguments are passed
-  # - if cmd is Cask, let Cask handle the help command instead
-  if (empty_argv || help_flag) && cmd != "cask"
+  if empty_argv || help_flag
     require "cmd/help"
     Homebrew.help cmd, empty_argv: empty_argv
     # `Homebrew.help` never returns, except for external/unknown commands.
@@ -96,32 +88,35 @@ begin
     system(HOMEBREW_BREW_FILE, "uninstall", "--force", "brew-cask")
   end
 
+  # External commands expect a normal PATH
+  ENV["PATH"] = homebrew_path unless internal_cmd
+
   if internal_cmd
     Homebrew.send cmd.to_s.tr("-", "_").downcase
   elsif which "brew-#{cmd}"
-    %w[CACHE LIBRARY_PATH].each do |env|
-      ENV["HOMEBREW_#{env}"] = Object.const_get("HOMEBREW_#{env}").to_s
+    %w[CACHE LIBRARY_PATH].each do |e|
+      ENV["HOMEBREW_#{e}"] = Object.const_get("HOMEBREW_#{e}").to_s
     end
     exec "brew-#{cmd}", *ARGV
   elsif (path = which("brew-#{cmd}.rb")) && require?(path)
     exit Homebrew.failed? ? 1 : 0
   else
+    require "tap"
     possible_tap = OFFICIAL_CMD_TAPS.find { |_, cmds| cmds.include?(cmd) }
     possible_tap = Tap.fetch(possible_tap.first) if possible_tap
 
-    odie "Unknown command: #{cmd}" if !possible_tap || possible_tap.installed?
-
-    brew_uid = HOMEBREW_BREW_FILE.stat.uid
-    tap_commands = []
-    if Process.uid.zero? && !brew_uid.zero?
-      tap_commands += %W[/usr/bin/sudo -u ##{brew_uid}]
+    if possible_tap && !possible_tap.installed?
+      brew_uid = HOMEBREW_BREW_FILE.stat.uid
+      tap_commands = []
+      if Process.uid.zero? && !brew_uid.zero?
+        tap_commands += %W[/usr/bin/sudo -u ##{brew_uid}]
+      end
+      tap_commands += %W[#{HOMEBREW_BREW_FILE} tap #{possible_tap}]
+      safe_system(*tap_commands)
+      exec HOMEBREW_BREW_FILE, cmd, *ARGV
+    else
+      odie "Unknown command: #{cmd}"
     end
-    # Unset HOMEBREW_HELP to avoid confusing the tap
-    ENV.delete("HOMEBREW_HELP") if help_flag
-    tap_commands += %W[#{HOMEBREW_BREW_FILE} tap #{possible_tap}]
-    safe_system(*tap_commands)
-    ENV["HOMEBREW_HELP"] = "1" if help_flag
-    exec HOMEBREW_BREW_FILE, cmd, *ARGV
   end
 rescue UsageError => e
   require "cmd/help"
@@ -149,7 +144,7 @@ rescue MethodDeprecatedError => e
     $stderr.puts "  #{Formatter.url(e.issues_url)}"
   end
   exit 1
-rescue Exception => e # rubocop:disable Lint/RescueException
+rescue Exception => e
   onoe e
   if internal_cmd && defined?(OS::ISSUES_URL) &&
      !ENV["HOMEBREW_NO_AUTO_UPDATE"]

@@ -41,7 +41,7 @@ describe Language::Python::Virtualenv::Virtualenv do
               "--no-binary", ":all:", "--ignore-installed", "foo", "bar")
         .and_return(true)
 
-      subject.pip_install <<~EOS
+      subject.pip_install <<-EOS.undent
         foo
         bar
       EOS

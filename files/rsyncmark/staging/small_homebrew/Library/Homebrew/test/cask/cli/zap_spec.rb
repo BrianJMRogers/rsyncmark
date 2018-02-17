@@ -1,18 +1,12 @@
-require_relative "shared_examples/requires_cask_token"
-require_relative "shared_examples/invalid_option"
-
 describe Hbc::CLI::Zap, :cask do
-  it_behaves_like "a command that requires a Cask token"
-  it_behaves_like "a command that handles invalid options"
-
   it "shows an error when a bad Cask is provided" do
-    expect { described_class.run("notacask") }
+    expect { Hbc::CLI::Zap.run("notacask") }
       .to raise_error(Hbc::CaskUnavailableError, /is unavailable/)
   end
 
   it "can zap and unlink multiple Casks at once" do
-    caffeine = Hbc::CaskLoader.load(cask_path("local-caffeine"))
-    transmission = Hbc::CaskLoader.load(cask_path("local-transmission"))
+    caffeine = Hbc::CaskLoader.load_from_file(TEST_FIXTURE_DIR/"cask/Casks/local-caffeine.rb")
+    transmission = Hbc::CaskLoader.load_from_file(TEST_FIXTURE_DIR/"cask/Casks/local-transmission.rb")
 
     Hbc::Installer.new(caffeine).install
     Hbc::Installer.new(transmission).install
@@ -20,12 +14,12 @@ describe Hbc::CLI::Zap, :cask do
     expect(caffeine).to be_installed
     expect(transmission).to be_installed
 
-    described_class.run("local-caffeine", "local-transmission")
+    Hbc::CLI::Zap.run("local-caffeine", "local-transmission")
 
     expect(caffeine).not_to be_installed
-    expect(Hbc::Config.global.appdir.join("Caffeine.app")).not_to be_a_symlink
+    expect(Hbc.appdir.join("Caffeine.app")).not_to be_a_symlink
     expect(transmission).not_to be_installed
-    expect(Hbc::Config.global.appdir.join("Transmission.app")).not_to be_a_symlink
+    expect(Hbc.appdir.join("Transmission.app")).not_to be_a_symlink
   end
 
   # TODO: Explicit test that both zap and uninstall directives get dispatched.
@@ -51,4 +45,20 @@ describe Hbc::CLI::Zap, :cask do
   #
   #   with_zap.wont_be :installed?
   # end
+
+  describe "when no Cask is specified" do
+    it "raises an exception" do
+      expect {
+        Hbc::CLI::Zap.run
+      }.to raise_error(Hbc::CaskUnspecifiedError)
+    end
+  end
+
+  describe "when no Cask is specified, but an invalid option" do
+    it "raises an exception" do
+      expect {
+        Hbc::CLI::Zap.run("--notavalidoption")
+      }.to raise_error(/invalid option/)
+    end
+  end
 end

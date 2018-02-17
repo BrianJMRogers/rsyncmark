@@ -16,14 +16,8 @@ describe Hbc::CLI, :cask do
   it "ignores the `--language` option, which is handled in `OS::Mac`" do
     cli = described_class.new("--language=en")
     expect(cli).to receive(:detect_command_and_arguments).with(no_args)
+    expect(cli).to receive(:exit).with(1)
     cli.run
-  end
-
-  context "when given no arguments" do
-    it "exits successfully" do
-      expect(subject).not_to receive(:exit).with(be_nonzero)
-      subject.run
-    end
   end
 
   context "when no option is specified" do
@@ -57,13 +51,10 @@ describe Hbc::CLI, :cask do
     end
 
     it "respects the env variable when choosing what appdir to create" do
-      allow(ENV).to receive(:[]).and_call_original
+      allow(ENV).to receive(:[])
       allow(ENV).to receive(:[]).with("HOMEBREW_CASK_OPTS").and_return("--appdir=/custom/appdir")
-      allow(Hbc::Config.global).to receive(:appdir).and_call_original
-
+      expect(Hbc).to receive(:appdir=).with(Pathname.new("/custom/appdir"))
       described_class.run("noop")
-
-      expect(Hbc::Config.global.appdir).to eq(Pathname.new("/custom/appdir"))
     end
 
     it "exits with a status of 1 when something goes wrong" do

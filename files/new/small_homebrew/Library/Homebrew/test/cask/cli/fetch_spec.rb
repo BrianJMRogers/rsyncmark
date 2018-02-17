@@ -1,20 +1,14 @@
-require_relative "shared_examples/requires_cask_token"
-require_relative "shared_examples/invalid_option"
-
 describe Hbc::CLI::Fetch, :cask do
   let(:local_transmission) {
-    Hbc::CaskLoader.load(cask_path("local-transmission"))
+    Hbc::CaskLoader.load_from_file(TEST_FIXTURE_DIR/"cask/Casks/local-transmission.rb")
   }
 
   let(:local_caffeine) {
-    Hbc::CaskLoader.load(cask_path("local-caffeine"))
+    Hbc::CaskLoader.load_from_file(TEST_FIXTURE_DIR/"cask/Casks/local-caffeine.rb")
   }
 
-  it_behaves_like "a command that requires a Cask token"
-  it_behaves_like "a command that handles invalid options"
-
   it "allows download the installer of a Cask" do
-    described_class.run("local-transmission", "local-caffeine")
+    Hbc::CLI::Fetch.run("local-transmission", "local-caffeine")
     expect(Hbc::CurlDownloadStrategy.new(local_transmission).cached_location).to exist
     expect(Hbc::CurlDownloadStrategy.new(local_caffeine).cached_location).to exist
   end
@@ -25,7 +19,7 @@ describe Hbc::CLI::Fetch, :cask do
     Hbc::Download.new(local_transmission).perform
     old_ctime = File.stat(download_stategy.cached_location).ctime
 
-    described_class.run("local-transmission")
+    Hbc::CLI::Fetch.run("local-transmission")
     new_ctime = File.stat(download_stategy.cached_location).ctime
 
     expect(old_ctime.to_i).to eq(new_ctime.to_i)
@@ -38,7 +32,7 @@ describe Hbc::CLI::Fetch, :cask do
     old_ctime = File.stat(download_stategy.cached_location).ctime
     sleep(1)
 
-    described_class.run("local-transmission", "--force")
+    Hbc::CLI::Fetch.run("local-transmission", "--force")
     download_stategy = Hbc::CurlDownloadStrategy.new(local_transmission)
     new_ctime = File.stat(download_stategy.cached_location).ctime
 
@@ -47,7 +41,23 @@ describe Hbc::CLI::Fetch, :cask do
 
   it "properly handles Casks that are not present" do
     expect {
-      described_class.run("notacask")
+      Hbc::CLI::Fetch.run("notacask")
     }.to raise_error(Hbc::CaskUnavailableError)
+  end
+
+  describe "when no Cask is specified" do
+    it "raises an exception" do
+      expect {
+        Hbc::CLI::Fetch.run
+      }.to raise_error(Hbc::CaskUnspecifiedError)
+    end
+  end
+
+  describe "when no Cask is specified, but an invalid option" do
+    it "raises an exception" do
+      expect {
+        Hbc::CLI::Fetch.run("--notavalidoption")
+      }.to raise_error(/invalid option/)
+    end
   end
 end

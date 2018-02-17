@@ -8,13 +8,13 @@ require "version"
 class Resource
   include FileUtils
 
-  attr_reader :mirrors, :specs, :using, :source_modified_time, :patches, :owner
+  attr_reader :mirrors, :specs, :using, :source_modified_time
   attr_writer :version
   attr_accessor :download_strategy, :checksum
 
   # Formula name must be set after the DSL, as we have no access to the
   # formula name before initialization of the formula
-  attr_accessor :name
+  attr_accessor :name, :owner
 
   class Download
     def initialize(resource)
@@ -46,13 +46,7 @@ class Resource
     @specs = {}
     @checksum = nil
     @using = nil
-    @patches = []
     instance_eval(&block) if block_given?
-  end
-
-  def owner=(owner)
-    @owner = owner
-    patches.each { |p| p.owner = owner }
   end
 
   def downloader
@@ -88,22 +82,7 @@ class Resource
     end
 
     verify_download_integrity(fetch)
-    prepare_patches
     unpack(target, &block)
-  end
-
-  def prepare_patches
-    patches.grep(DATAPatch) { |p| p.path = owner.owner.path }
-
-    patches.each do |patch|
-      patch.verify_download_integrity(patch.fetch) if patch.external?
-    end
-  end
-
-  def apply_patches
-    return if patches.empty?
-    ohai "Patching #{name}"
-    patches.each(&:apply)
   end
 
   # If a target is given, unpack there; else unpack to a temp folder.
@@ -114,7 +93,6 @@ class Resource
     mktemp(download_name) do |staging|
       downloader.stage
       @source_modified_time = downloader.source_modified_time
-      apply_patches
       if block_given?
         yield ResourceStageContext.new(self, staging)
       elsif target
@@ -176,11 +154,6 @@ class Resource
     mirrors << val
   end
 
-  def patch(strip = :p1, src = nil, &block)
-    p = Patch.create(strip, src, &block)
-    patches << p
-  end
-
   private
 
   def detect_version(val)
@@ -201,7 +174,7 @@ class Resource
     end
   end
 
-  class PatchResource < Resource
+  class Patch < Resource
     attr_reader :patch_files
 
     def initialize(&block)

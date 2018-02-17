@@ -9,11 +9,13 @@ require "build_environment"
 class Requirement
   include Dependable
 
-  attr_reader :tags, :name, :cask, :download
+  attr_reader :tags, :name, :cask, :download, :default_formula
 
   def initialize(tags = [])
+    @default_formula = self.class.default_formula
     @cask ||= self.class.cask
     @download ||= self.class.download
+    @formula = nil
     tags.each do |tag|
       next unless tag.is_a? Hash
       @cask ||= tag[:cask]
@@ -33,50 +35,58 @@ class Requirement
     _, _, class_name = self.class.to_s.rpartition "::"
     s = "#{class_name} unsatisfied!\n"
     if cask
-      s += <<~EOS
+      s += <<-EOS.undent
+
         You can install with Homebrew-Cask:
-         brew cask install #{cask}
+          brew cask install #{cask}
       EOS
     end
 
     if download
-      s += <<~EOS
+      s += <<-EOS.undent
+
         You can download from:
-         #{download}
+          #{download}
       EOS
     end
     s
   end
 
-  # Overriding #satisfied? is unsupported.
+  # Overriding #satisfied? is deprecated.
   # Pass a block or boolean to the satisfy DSL method instead.
   def satisfied?
-    satisfy = self.class.satisfy
-    return true unless satisfy
-    @satisfied_result = satisfy.yielder { |p| instance_eval(&p) }
-    return false unless @satisfied_result
+    result = self.class.satisfy.yielder { |p| instance_eval(&p) }
+    @satisfied_result = result
+    return false unless result
+
+    if parent = satisfied_result_parent
+      parent.to_s =~ %r{(#{Regexp.escape(HOMEBREW_CELLAR)}|#{Regexp.escape(HOMEBREW_PREFIX)}/opt)/([\w+-.@]+)}
+      @formula = Regexp.last_match(2)
+    end
+
     true
   end
 
-  # Overriding #fatal? is unsupported.
+  # Overriding #fatal? is deprecated.
   # Pass a boolean to the fatal DSL method instead.
   def fatal?
     self.class.fatal || false
   end
 
-  def satisfied_result_parent
-    return unless @satisfied_result.is_a?(Pathname)
-    parent = @satisfied_result.resolved_path.parent
-    if parent.to_s =~ %r{^#{Regexp.escape(HOMEBREW_CELLAR)}/([\w+-.@]+)/[^/]+/(s?bin)/?$}
-      parent = HOMEBREW_PREFIX/"opt/#{Regexp.last_match(1)}/#{Regexp.last_match(2)}"
-    end
-    parent
+  def default_formula?
+    self.class.default_formula || false
   end
 
-  # Overriding #modify_build_environment is unsupported.
+  def satisfied_result_parent
+    return unless @satisfied_result.is_a?(Pathname)
+    @satisfied_result.resolved_path.parent
+  end
+
+  # Overriding #modify_build_environment is deprecated.
   # Pass a block to the env DSL method instead.
+  # Note: #satisfied? should be called before invoking this method
+  # as the env modifications may depend on its side effects.
   def modify_build_environment
-    satisfied?
     instance_eval(&env_proc) if env_proc
 
     # XXX If the satisfy block returns a Pathname, then make sure that it
@@ -86,9 +96,8 @@ class Requirement
     # PATH.
     parent = satisfied_result_parent
     return unless parent
-    return if ["#{HOMEBREW_PREFIX}/bin", "#{HOMEBREW_PREFIX}/bin"].include?(parent.to_s)
     return if PATH.new(ENV["PATH"]).include?(parent.to_s)
-    ENV.prepend_path("PATH", parent)
+    ENV.append_path("PATH", parent)
   end
 
   def env
@@ -110,6 +119,24 @@ class Requirement
 
   def inspect
     "#<#{self.class.name}: #{name.inspect} #{tags.inspect}>"
+  end
+
+  def formula
+    @formula || self.class.default_formula
+  end
+
+  def satisfied_by_formula?
+    !@formula.nil?
+  end
+
+  def to_dependency(use_default_formula: false)
+    if use_default_formula && default_formula?
+      Dependency.new(self.class.default_formula, tags, method(:modify_build_environment), name)
+    elsif formula =~ HOMEBREW_TAP_FORMULA_REGEX
+      TapDependency.new(formula, tags, method(:modify_build_environment), name)
+    elsif formula
+      Dependency.new(formula, tags, method(:modify_build_environment), name)
+    end
   end
 
   def display_s
@@ -137,16 +164,11 @@ class Requirement
     include BuildEnvironment::DSL
 
     attr_reader :env_proc, :build
-    attr_rw :fatal, :cask, :download
+    attr_rw :fatal, :default_formula
+    attr_rw :cask, :download
 
-    def default_formula(_val = nil)
-      odeprecated "Requirement.default_formula"
-    end
-
-    def satisfy(options = nil, &block)
-      return @satisfied if options.nil? && !block_given?
-      options = {} if options.nil?
-      @satisfied = Requirement::Satisfier.new(options, &block)
+    def satisfy(options = {}, &block)
+      @satisfied ||= Requirement::Satisfier.new(options, &block)
     end
 
     def env(*settings, &block)

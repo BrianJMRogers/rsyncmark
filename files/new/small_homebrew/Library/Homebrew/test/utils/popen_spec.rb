@@ -15,12 +15,6 @@ describe Utils do
       ).to eq("success")
       expect($CHILD_STATUS).to be_a_success
     end
-
-    it "fails when the command does not exist" do
-      expect(subject.popen_read("./nonexistent", err: :out))
-        .to eq("brew: command not found: ./nonexistent\n")
-      expect($CHILD_STATUS).to be_a_failure
-    end
   end
 
   describe "::popen_write" do

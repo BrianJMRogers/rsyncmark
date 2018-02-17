@@ -1,3 +1,6 @@
+require "rubocop"
+require "rubocop/rspec/support"
+require_relative "../../extend/string"
 require_relative "../../rubocops/text_cop"
 
 describe RuboCop::Cop::FormulaAudit::Text do
@@ -5,133 +8,218 @@ describe RuboCop::Cop::FormulaAudit::Text do
 
   context "When auditing formula text" do
     it "with both openssl and libressl optional dependencies" do
-      expect_offense(<<~RUBY)
+      source = <<-EOS.undent
         class Foo < Formula
           url "http://example.com/foo-1.0.tgz"
           homepage "http://example.com"
 
           depends_on "openssl"
           depends_on "libressl" => :optional
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Formulae should not depend on both OpenSSL and LibreSSL (even optionally).
         end
-      RUBY
+      EOS
+
+      expected_offenses = [{  message: "Formulae should not depend on both OpenSSL and LibreSSL (even optionally).",
+                              severity: :convention,
+                              line: 6,
+                              column: 2,
+                              source: source }]
+
+      inspect_source(cop, source)
+
+      expected_offenses.zip(cop.offenses).each do |expected, actual|
+        expect_offense(expected, actual)
+      end
     end
 
     it "with both openssl and libressl dependencies" do
-      expect_offense(<<~RUBY)
+      source = <<-EOS.undent
         class Foo < Formula
           url "http://example.com/foo-1.0.tgz"
           homepage "http://example.com"
 
           depends_on "openssl"
           depends_on "libressl"
-          ^^^^^^^^^^^^^^^^^^^^^ Formulae should not depend on both OpenSSL and LibreSSL (even optionally).
         end
-      RUBY
+      EOS
+
+      expected_offenses = [{  message: "Formulae should not depend on both OpenSSL and LibreSSL (even optionally).",
+                              severity: :convention,
+                              line: 6,
+                              column: 2,
+                              source: source }]
+
+      inspect_source(cop, source)
+
+      expected_offenses.zip(cop.offenses).each do |expected, actual|
+        expect_offense(expected, actual)
+      end
     end
 
     it "When xcodebuild is called without SYMROOT" do
-      expect_offense(<<~RUBY)
+      source = <<-EOS.undent
         class Foo < Formula
           url "http://example.com/foo-1.0.tgz"
           homepage "http://example.com"
 
           def install
             xcodebuild "-project", "meow.xcodeproject"
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ xcodebuild should be passed an explicit \"SYMROOT\"
           end
         end
-      RUBY
+      EOS
+
+      expected_offenses = [{  message: "xcodebuild should be passed an explicit \"SYMROOT\"",
+                              severity: :convention,
+                              line: 6,
+                              column: 4,
+                              source: source }]
+
+      inspect_source(cop, source)
+
+      expected_offenses.zip(cop.offenses).each do |expected, actual|
+        expect_offense(expected, actual)
+      end
     end
 
     it "When xcodebuild is called without any args" do
-      expect_offense(<<~RUBY)
+      source = <<-EOS.undent
         class Foo < Formula
           url "http://example.com/foo-1.0.tgz"
           homepage "http://example.com"
 
           def install
             xcodebuild
-            ^^^^^^^^^^ xcodebuild should be passed an explicit \"SYMROOT\"
           end
         end
-      RUBY
+      EOS
+
+      expected_offenses = [{  message: "xcodebuild should be passed an explicit \"SYMROOT\"",
+                              severity: :convention,
+                              line: 6,
+                              column: 4,
+                              source: source }]
+
+      inspect_source(cop, source)
+
+      expected_offenses.zip(cop.offenses).each do |expected, actual|
+        expect_offense(expected, actual)
+      end
     end
 
     it "When go get is executed" do
-      expect_offense(<<~RUBY)
+      source = <<-EOS.undent
         class Foo < Formula
           url "http://example.com/foo-1.0.tgz"
           homepage "http://example.com"
 
           def install
             system "go", "get", "bar"
-            ^^^^^^^^^^^^^^^^^^^^^^^^^ Do not use `go get`. Please ask upstream to implement Go vendoring
           end
         end
-      RUBY
+      EOS
+
+      expected_offenses = [{  message: "Formulae should not use `go get`. If non-vendored resources are required use `go_resource`s.",
+                              severity: :convention,
+                              line: 6,
+                              column: 4,
+                              source: source }]
+
+      inspect_source(cop, source)
+
+      expected_offenses.zip(cop.offenses).each do |expected, actual|
+        expect_offense(expected, actual)
+      end
     end
 
     it "When xcodebuild is executed" do
-      expect_offense(<<~RUBY)
+      source = <<-EOS.undent
         class Foo < Formula
           url "http://example.com/foo-1.0.tgz"
           homepage "http://example.com"
 
           def install
             system "xcodebuild", "foo", "bar"
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ use \"xcodebuild *args\" instead of \"system 'xcodebuild', *args\"
           end
         end
-      RUBY
+      EOS
+
+      expected_offenses = [{  message: "use \"xcodebuild *args\" instead of \"system 'xcodebuild', *args\"",
+                              severity: :convention,
+                              line: 6,
+                              column: 4,
+                              source: source }]
+
+      inspect_source(cop, source)
+
+      expected_offenses.zip(cop.offenses).each do |expected, actual|
+        expect_offense(expected, actual)
+      end
     end
 
     it "When scons is executed" do
-      expect_offense(<<~RUBY)
+      source = <<-EOS.undent
         class Foo < Formula
           url "http://example.com/foo-1.0.tgz"
           homepage "http://example.com"
 
           def install
             system "scons", "foo", "bar"
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ use \"scons *args\" instead of \"system 'scons', *args\"
           end
         end
-      RUBY
+      EOS
+
+      expected_offenses = [{  message: "use \"scons *args\" instead of \"system 'scons', *args\"",
+                              severity: :convention,
+                              line: 6,
+                              column: 4,
+                              source: source }]
+
+      inspect_source(cop, source)
+
+      expected_offenses.zip(cop.offenses).each do |expected, actual|
+        expect_offense(expected, actual)
+      end
     end
 
-    it "When plist_options are not defined when using a formula-defined plist", :ruby23 do
-      expect_offense(<<~RUBY)
+    it "When plist_options are not defined when using a formula-defined plist" do
+      source = <<-EOS.undent
         class Foo < Formula
           url "http://example.com/foo-1.0.tgz"
           homepage "http://example.com"
 
           def install
             system "xcodebuild", "foo", "bar"
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ use \"xcodebuild *args\" instead of \"system 'xcodebuild', *args\"
           end
 
-          def plist
-          ^^^^^^^^^ Please set plist_options when using a formula-defined plist.
-            <<~XML
-              <?xml version="1.0" encoding="UTF-8"?>
-              <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-              <plist version="1.0">
-              <dict>
-                <key>Label</key>
-                <string>org.nrpe.agent</string>
-              </dict>
-              </plist>
-            XML
+          def plist; <<-EOS.undent
+            <?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+            <plist version="1.0">
+            <dict>
+              <key>Label</key>
+              <string>org.nrpe.agent</string>
+            </dict>
+            </plist>
+            \EOS
           end
         end
-      RUBY
+      EOS
+
+      expected_offenses = [{  message: "Please set plist_options when using a formula-defined plist.",
+                              severity: :convention,
+                              line: 9,
+                              column: 2,
+                              source: source }]
+
+      inspect_source(cop, source)
+
+      expected_offenses.zip(cop.offenses).each do |expected, actual|
+        expect_offense(expected, actual)
+      end
     end
 
     it "When language/go is require'd" do
-      expect_offense(<<~RUBY)
+      source = <<-EOS.undent
         require "language/go"
-        ^^^^^^^^^^^^^^^^^^^^^ require "language/go" is unnecessary unless using `go_resource`s
 
         class Foo < Formula
           url "http://example.com/foo-1.0.tgz"
@@ -139,20 +227,30 @@ describe RuboCop::Cop::FormulaAudit::Text do
 
           def install
             system "go", "get", "bar"
-            ^^^^^^^^^^^^^^^^^^^^^^^^^ Do not use `go get`. Please ask upstream to implement Go vendoring
           end
         end
-      RUBY
+      EOS
+
+      expected_offenses = [{  message: "require \"language/go\" is unnecessary unless using `go_resource`s",
+                              severity: :convention,
+                              line: 1,
+                              column: 0,
+                              source: source }]
+
+      inspect_source(cop, source)
+
+      expected_offenses.zip(cop.offenses).each do |expected, actual|
+        expect_offense(expected, actual)
+      end
     end
 
     it "When formula uses virtualenv and also `setuptools` resource" do
-      expect_offense(<<~RUBY)
+      source = <<-EOS.undent
         class Foo < Formula
           url "http://example.com/foo-1.0.tgz"
           homepage "http://example.com"
 
           resource "setuptools" do
-          ^^^^^^^^^^^^^^^^^^^^^ Formulae using virtualenvs do not need a `setuptools` resource.
             url "https://foo.com/foo.tar.gz"
             sha256 "db0904a28253cfe53e7dedc765c71596f3c53bb8a866ae50123320ec1a7b73fd"
           end
@@ -161,21 +259,51 @@ describe RuboCop::Cop::FormulaAudit::Text do
             virtualenv_create(libexec)
           end
         end
-      RUBY
+      EOS
+
+      expected_offenses = [{  message: "Formulae using virtualenvs do not need a `setuptools` resource.",
+                              severity: :convention,
+                              line: 5,
+                              column: 2,
+                              source: source }]
+
+      inspect_source(cop, source)
+
+      expected_offenses.zip(cop.offenses).each do |expected, actual|
+        expect_offense(expected, actual)
+      end
     end
 
     it "When Formula.factory(name) is used" do
-      expect_offense(<<~RUBY)
+      source = <<-EOS.undent
         class Foo < Formula
           url "http://example.com/foo-1.0.tgz"
           homepage "http://example.com"
 
           def install
             Formula.factory(name)
-            ^^^^^^^^^^^^^^^^^^^^^ \"Formula.factory(name)\" is deprecated in favor of \"Formula[name]\"
           end
         end
-      RUBY
+      EOS
+
+      expected_offenses = [{  message: "\"Formula.factory(name)\" is deprecated in favor of \"Formula[name]\"",
+                              severity: :convention,
+                              line: 6,
+                              column: 4,
+                              source: source }]
+
+      inspect_source(cop, source)
+
+      expected_offenses.zip(cop.offenses).each do |expected, actual|
+        expect_offense(expected, actual)
+      end
+    end
+
+    def expect_offense(expected, actual)
+      expect(actual.message).to eq(expected[:message])
+      expect(actual.severity).to eq(expected[:severity])
+      expect(actual.line).to eq(expected[:line])
+      expect(actual.column).to eq(expected[:column])
     end
   end
 end

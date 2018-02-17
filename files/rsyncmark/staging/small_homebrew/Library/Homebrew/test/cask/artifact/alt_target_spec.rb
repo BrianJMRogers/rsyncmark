@@ -1,17 +1,13 @@
 describe Hbc::Artifact::App, :cask do
   describe "activate to alternate target" do
-    let(:cask) { Hbc::CaskLoader.load(cask_path("with-alt-target")) }
+    let(:cask) { Hbc::CaskLoader.load_from_file(TEST_FIXTURE_DIR/"cask/Casks/with-alt-target.rb") }
 
     let(:install_phase) {
-      lambda do
-        cask.artifacts.select { |a| a.is_a?(described_class) }.each do |artifact|
-          artifact.install_phase(command: Hbc::NeverSudoSystemCommand, force: false)
-        end
-      end
+      -> { described_class.for_cask(cask).each { |artifact| artifact.install_phase(command: Hbc::NeverSudoSystemCommand, force: false) } }
     }
 
     let(:source_path) { cask.staged_path.join("Caffeine.app") }
-    let(:target_path) { Hbc::Config.global.appdir.join("AnotherName.app") }
+    let(:target_path) { Hbc.appdir.join("AnotherName.app") }
 
     before do
       InstallHelper.install_without_artifacts(cask)
@@ -58,7 +54,7 @@ describe Hbc::Artifact::App, :cask do
       expect(target_path).to be_a_directory
       expect(source_path).not_to exist
 
-      expect(Hbc::Config.global.appdir.join("Caffeine Deluxe.app")).not_to exist
+      expect(Hbc.appdir.join("Caffeine Deluxe.app")).not_to exist
       expect(cask.staged_path.join("Caffeine Deluxe.app")).to be_a_directory
     end
 

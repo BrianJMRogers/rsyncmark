@@ -15,26 +15,15 @@ describe Cleaner do
     it "cleans files" do
       f.bin.mkpath
       f.lib.mkpath
-
-      if OS.mac?
-        cp "#{TEST_FIXTURE_DIR}/mach/a.out", f.bin
-        cp Dir["#{TEST_FIXTURE_DIR}/mach/*.dylib"], f.lib
-      elsif OS.linux?
-        cp "#{TEST_FIXTURE_DIR}/elf/hello", f.bin
-        cp Dir["#{TEST_FIXTURE_DIR}/elf/libhello.so.0"], f.lib
-      end
+      cp "#{TEST_FIXTURE_DIR}/mach/a.out", f.bin
+      cp Dir["#{TEST_FIXTURE_DIR}/mach/*.dylib"], f.lib
 
       subject.clean
 
-      if OS.mac?
-        expect((f.bin/"a.out").stat.mode).to eq(0100555)
-        expect((f.lib/"fat.dylib").stat.mode).to eq(0100444)
-        expect((f.lib/"x86_64.dylib").stat.mode).to eq(0100444)
-        expect((f.lib/"i386.dylib").stat.mode).to eq(0100444)
-      elsif OS.linux?
-        expect((f.bin/"hello").stat.mode).to eq(0100555)
-        expect((f.lib/"libhello.so.0").stat.mode).to eq(0100555)
-      end
+      expect((f.bin/"a.out").stat.mode).to eq(0100555)
+      expect((f.lib/"fat.dylib").stat.mode).to eq(0100444)
+      expect((f.lib/"x86_64.dylib").stat.mode).to eq(0100444)
+      expect((f.lib/"i386.dylib").stat.mode).to eq(0100444)
     end
 
     it "prunes the prefix if it is empty" do

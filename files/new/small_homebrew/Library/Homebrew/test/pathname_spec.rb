@@ -79,12 +79,12 @@ describe Pathname do
       touch file
 
       file.append_lines("CONTENT")
-      expect(File.read(file)).to eq <<~EOS
+      expect(File.read(file)).to eq <<-EOS.undent
         CONTENT
       EOS
 
       file.append_lines("CONTENTS")
-      expect(File.read(file)).to eq <<~EOS
+      expect(File.read(file)).to eq <<-EOS.undent
         CONTENT
         CONTENTS
       EOS

@@ -1,5 +1,3 @@
-require_relative "shared_examples/invalid_option"
-
 describe Hbc::CLI::Cleanup, :cask do
   let(:cache_location) { Pathname.new(Dir.mktmpdir).realpath }
   let(:outdated_only) { false }
@@ -13,8 +11,6 @@ describe Hbc::CLI::Cleanup, :cask do
   after do
     cache_location.rmtree
   end
-
-  it_behaves_like "a command that handles invalid options"
 
   describe "cleanup" do
     let(:cask_token) { "caffeine" }
@@ -32,7 +28,7 @@ describe Hbc::CLI::Cleanup, :cask do
 
       expect {
         subject.run
-      }.to output(<<~EOS).to_stdout
+      }.to output(<<-EOS.undent).to_stdout
         ==> Removing cached downloads for #{cask_token}
         #{cached_downloads[0]}
         ==> This operation has freed approximately #{disk_usage_readable(cleanup_size)} of disk space.
@@ -52,7 +48,7 @@ describe Hbc::CLI::Cleanup, :cask do
 
         expect {
           subject.run
-        }.to output(<<~EOS).to_stdout
+        }.to output(<<-EOS.undent).to_stdout
           ==> Removing cached downloads
           #{cached_download}
           ==> This operation has freed approximately #{disk_usage_readable(cleanup_size)} of disk space.
@@ -70,7 +66,7 @@ describe Hbc::CLI::Cleanup, :cask do
 
           expect {
             subject.run
-          }.to output(<<~EOS).to_stdout
+          }.to output(<<-EOS.undent).to_stdout
             ==> Removing cached downloads older than 10 days old
             Nothing to do
           EOS

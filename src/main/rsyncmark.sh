@@ -36,12 +36,12 @@ TARGET_DIR_NAME="target"
 PATH_TO_RSYNCMARK_FILE_DIR="../../files/rsyncmark" # this is the path to these files locally
 PATH_TO_NEW_FILES="../../files/new"
 PATH_TO_OLD_FILES="../../files/old"
-LARGE_FILE_NAME="large_rails"
+LARGE_FILE_NAME="large_django"
 MEDIUM_FILE_NAME="medium_bootstrap"
 SMALL_FILE_NAME="small_homebrew"
 TIME_FILE_NAME="time.txt"
 RSYNC_OUTPUT_DUMP_FILE="rsync_output.txt" #this is used to capture the output of each timed rsync run
-OUTPUT_HEADER="trial_name,real_time_seconds,user_time_seconds,sys_time_seconds,throughput_bytes_per_second,file_size_name,file_size_bytes,delta_size_bytes,trial_num"
+OUTPUT_HEADER="trial_name,real_time_seconds,user_time_seconds,sys_time_seconds,throughput_bytes_per_second,file_size_name,file_size_bytes,delta_size_bytes,speedup,trial_num"
 
 # argument declarations
 NAMEARG="-n" # the name of this trial run. Will be listed as this in the output file
@@ -132,7 +132,7 @@ function print_args
 #### FUNCTION PURPOSE: to ensure the user knows we'll overwrite files named $TEST_FILE_NAME
 function verify_overwrite_is_okay
 {
-    echo "[*] this benchmark will overwrite files and the contents of directories named $TEST_FILE_NAME. Are you sure you want to proceed? (yes/no)"
+    echo "[*] this benchmark will overwrite files and the contents of directories named $REMOTE_DIR_BASE in directory $REMOTE_DIR_BASE_LOCATION. Are you sure you want to proceed? (yes/no)"
     read verification
     if [ "$verification" != "yes" ]; then
         echo "you must answer \"yes\" in order to continue"
@@ -228,16 +228,16 @@ function run_trials
     #repeat 30 times:
         # move files to target
     # sync large files
-    for i in {1..2}; do
+    for i in {1..1}; do
         sync_file_record_output large
     done
 
-    for i in {1..2}; do
+    for i in {1..1}; do
         sync_file_record_output medium
     done
 
 
-    for i in {1..2}; do
+    for i in {1..1}; do
         sync_file_record_output small
     done
 }
@@ -280,8 +280,11 @@ function sync_file_record_output
     trial_num=$2
     size_name=$1
     size_bytes=$(cat $RSYNC_OUTPUT_DUMP_FILE | grep total | grep size | grep is | awk '{print $4}')
+    #speedup=$(cat $RSYNC_OUTPUT_DUMP_FILE | grep total | grep speedup | grep is | awk '{print $7}')
+    speedup=$(sed 's/^M//g' $RSYNC_OUTPUT_DUMP_FILE | grep total | grep speedup | grep is | awk '{print substr($7,0,4)}')
+    echo "speedup: [TODO:: FIX SPEED UP TO ONLY GRAB UP UNTIL PERIOD]"
 
-    line="$trial_name, $real_time, $user_time, $sys_time, $throughput, $size_name, $size_bytes, $delta, $i"
+    line="$trial_name, $real_time, $user_time, $sys_time, $throughput, $size_name, $size_bytes, $delta, $speedup, $i"
 
     echo $line >> $output_name
 
@@ -315,7 +318,7 @@ parse_args
 
 verify_args
 
-#verify_overwrite_is_okay
+verify_overwrite_is_okay
 
 #print_args # uncomment when needed
 

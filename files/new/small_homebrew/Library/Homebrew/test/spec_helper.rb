@@ -2,10 +2,7 @@ require "find"
 require "pathname"
 require "rspec/its"
 require "rspec/wait"
-require "rubocop"
-require "rubocop/rspec/support"
 require "set"
-require "support/no_seed_progress_formatter"
 
 if ENV["HOMEBREW_TESTS_COVERAGE"]
   require "simplecov"
@@ -26,6 +23,7 @@ require "test/support/helper/fixtures"
 require "test/support/helper/formula"
 require "test/support/helper/mktmpdir"
 require "test/support/helper/output_as_tty"
+require "test/support/helper/rubocop"
 
 require "test/support/helper/spec/shared_context/homebrew_cask" if OS.mac?
 require "test/support/helper/spec/shared_context/integration_test"
@@ -45,14 +43,11 @@ RSpec.configure do |config|
 
   config.filter_run_when_matching :focus
 
-  config.include(FileUtils)
-
-  config.include(RuboCop::RSpec::ExpectOffense)
-
   config.include(Test::Helper::Fixtures)
   config.include(Test::Helper::Formula)
   config.include(Test::Helper::MkTmpDir)
   config.include(Test::Helper::OutputAsTTY)
+  config.include(Test::Helper::RuboCop)
 
   config.before(:each, :needs_compat) do
     skip "Requires compatibility layer." if ENV["HOMEBREW_NO_COMPAT"]
@@ -118,7 +113,6 @@ RSpec.configure do |config|
         HOMEBREW_PINNED_KEGS,
         HOMEBREW_PREFIX/".git",
         HOMEBREW_PREFIX/"bin",
-        HOMEBREW_PREFIX/"etc",
         HOMEBREW_PREFIX/"share",
         HOMEBREW_PREFIX/"opt",
         HOMEBREW_PREFIX/"Caskroom",
@@ -137,7 +131,7 @@ RSpec.configure do |config|
       files_after_test = find_files
 
       diff = Set.new(@__files_before_test) ^ Set.new(files_after_test)
-      expect(diff).to be_empty, <<~EOS
+      expect(diff).to be_empty, <<-EOS.undent
         file leak detected:
         #{diff.map { |f| "  #{f}" }.join("\n")}
       EOS

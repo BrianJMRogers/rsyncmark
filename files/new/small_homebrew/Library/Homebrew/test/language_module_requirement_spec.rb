@@ -1,6 +1,6 @@
-require "compat/requirements/language_module_requirement"
+require "requirements/language_module_requirement"
 
-describe LanguageModuleRequirement, :needs_compat do
+describe LanguageModuleRequirement do
   specify "unique dependencies are not equal" do
     x = described_class.new(:node, "less")
     y = described_class.new(:node, "coffee-script")

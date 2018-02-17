@@ -248,9 +248,9 @@ describe Version do
       end
 
       failure_message do |expected|
-        message = <<~EOS
-          expected: %s
-          detected: %s
+        message = <<-EOS
+        expected: %s
+        detected: %s
         EOS
         format(message, expected, detected)
       end
@@ -647,11 +647,6 @@ describe Version do
     specify "dash separated version" do
       expect(Version.create("6-20151227"))
         .to be_detected_from("ftp://gcc.gnu.org/pub/gcc/snapshots/6-20151227/gcc-6-20151227.tar.bz2")
-    end
-
-    specify "semver in middle of URL" do
-      expect(Version.create("7.1.10"))
-        .to be_detected_from("https://php.net/get/php-7.1.10.tar.gz/from/this/mirror")
     end
 
     specify "from URL" do

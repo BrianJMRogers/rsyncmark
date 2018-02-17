@@ -1,9 +1,5 @@
-require_relative "shared_examples/invalid_option"
-
 describe Hbc::CLI::Audit, :cask do
   let(:cask) { Hbc::Cask.new(nil) }
-
-  it_behaves_like "a command that handles invalid options"
 
   describe "selection of Casks to audit" do
     it "audits all Casks if no tokens are given" do
@@ -13,7 +9,7 @@ describe Hbc::CLI::Audit, :cask do
 
       expect(Hbc::Auditor).to receive(:audit).twice.and_return(true)
 
-      described_class.run
+      Hbc::CLI::Audit.run
     end
 
     it "audits specified Casks if tokens are given" do
@@ -24,7 +20,7 @@ describe Hbc::CLI::Audit, :cask do
         .with(cask, audit_download: false, check_token_conflicts: false)
         .and_return(true)
 
-      described_class.run(cask_token)
+      Hbc::CLI::Audit.run(cask_token)
     end
   end
 
@@ -35,7 +31,7 @@ describe Hbc::CLI::Audit, :cask do
         .with(cask, audit_download: false, check_token_conflicts: false)
         .and_return(true)
 
-      described_class.run("casktoken")
+      Hbc::CLI::Audit.run("casktoken")
     end
 
     it "download a Cask if --download flag is set" do
@@ -44,7 +40,7 @@ describe Hbc::CLI::Audit, :cask do
         .with(cask, audit_download: true, check_token_conflicts: false)
         .and_return(true)
 
-      described_class.run("casktoken", "--download")
+      Hbc::CLI::Audit.run("casktoken", "--download")
     end
   end
 
@@ -55,7 +51,7 @@ describe Hbc::CLI::Audit, :cask do
         .with(cask, audit_download: false, check_token_conflicts: false)
         .and_return(true)
 
-      described_class.run("casktoken")
+      Hbc::CLI::Audit.run("casktoken")
     end
 
     it "checks for token conflicts if --token-conflicts flag is set" do
@@ -64,7 +60,7 @@ describe Hbc::CLI::Audit, :cask do
         .with(cask, audit_download: false, check_token_conflicts: true)
         .and_return(true)
 
-      described_class.run("casktoken", "--token-conflicts")
+      Hbc::CLI::Audit.run("casktoken", "--token-conflicts")
     end
   end
 end

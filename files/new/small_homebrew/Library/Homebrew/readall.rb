@@ -1,5 +1,6 @@
 require "formula"
 require "tap"
+require "thread"
 
 module Readall
   class << self
@@ -51,7 +52,7 @@ module Readall
           Formulary.factory(file)
         rescue Interrupt
           raise
-        rescue Exception => e # rubocop:disable Lint/RescueException
+        rescue Exception => e
           onoe "Invalid formula: #{file}"
           puts e
           failed = true

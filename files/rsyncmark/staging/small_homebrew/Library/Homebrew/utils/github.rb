@@ -16,7 +16,7 @@ module GitHub
 
   class RateLimitExceededError < Error
     def initialize(reset, error)
-      super <<~EOS
+      super <<-EOS.undent
         GitHub API Error: #{error}
         Try again in #{pretty_ratelimit_reset(reset)}, or create a personal access token:
           #{ALL_SCOPES_URL}
@@ -33,12 +33,12 @@ module GitHub
     def initialize(error)
       message = "GitHub #{error}\n"
       if ENV["HOMEBREW_GITHUB_API_TOKEN"]
-        message << <<~EOS
+        message << <<-EOS.undent
           HOMEBREW_GITHUB_API_TOKEN may be invalid or expired; check:
           #{Formatter.url("https://github.com/settings/tokens")}
         EOS
       else
-        message << <<~EOS
+        message << <<-EOS.undent
           The GitHub credentials in the macOS keychain may be invalid.
           Clear them with:
             printf "protocol=https\\nhost=github.com\\n" | git credential-osxkeychain erase
@@ -86,9 +86,15 @@ module GitHub
 
   def api_credentials_type
     token, username = api_credentials
-    return :none if !token || token.empty?
-    return :environment if !username || username.empty?
-    :keychain
+    if token && !token.empty?
+      if username && !username.empty?
+        :keychain
+      else
+        :environment
+      end
+    else
+      :none
+    end
   end
 
   def api_credentials_error_message(response_headers, needed_scopes)
@@ -104,7 +110,7 @@ module GitHub
 
         case GitHub.api_credentials_type
         when :keychain
-          onoe <<~EOS
+          onoe <<-EOS.undent
             Your macOS keychain GitHub credentials do not have sufficient scope!
             Scopes they need: #{needed_human_scopes}
             Scopes they have: #{credentials_scopes}
@@ -112,7 +118,7 @@ module GitHub
             and then set HOMEBREW_GITHUB_API_TOKEN as the authentication method instead.
           EOS
         when :environment
-          onoe <<~EOS
+          onoe <<-EOS.undent
             Your HOMEBREW_GITHUB_API_TOKEN does not have sufficient scope!
             Scopes they need: #{needed_human_scopes}
             Scopes it has: #{credentials_scopes}
@@ -129,7 +135,7 @@ module GitHub
     # This is a no-op if the user is opting out of using the GitHub API.
     return block_given? ? yield({}) : {} if ENV["HOMEBREW_NO_GITHUB_API"]
 
-    args = %W[--header application/vnd.github.v3+json --write-out \n%{http_code}] # rubocop:disable Lint/NestedPercentLiteral
+    args = %W[--header application/vnd.github.v3+json --write-out \n%{http_code}]
     args += curl_args
 
     token, username = api_credentials
@@ -235,7 +241,7 @@ module GitHub
 
   def issues_for_formula(name, options = {})
     tap = options[:tap] || CoreTap.instance
-    search_issues(name, state: "open", repo: "#{tap.user}/homebrew-#{tap.repo}", in: "title")
+    search_issues(name, state: "open", repo: "#{tap.user}/homebrew-#{tap.repo}")
   end
 
   def print_pull_requests_matching(query)

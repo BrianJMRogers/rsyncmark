@@ -138,7 +138,7 @@ class Sandbox
   end
 
   class SandboxProfile
-    SEATBELT_ERB = <<~EOS.freeze
+    SEATBELT_ERB = <<-EOS.undent
       (version 1)
       (debug deny) ; log all denied operations to /var/log/system.log
       <%= rules.join("\n") %>
@@ -167,7 +167,7 @@ class Sandbox
 
     def add_rule(rule)
       s = "("
-      s << (rule[:allow] ? "allow" : "deny")
+      s << ((rule[:allow]) ? "allow" : "deny")
       s << " #{rule[:operation]}"
       s << " (#{rule[:filter]})" if rule[:filter]
       s << " (with #{rule[:modifier]})" if rule[:modifier]

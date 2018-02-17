@@ -1,9 +1,8 @@
 AllCops:
-  TargetRubyVersion: 2.3
+  TargetRubyVersion: 2.0
   Exclude:
     - '**/Casks/**/*'
     - '**/vendor/**/*'
-  DisplayCopNames: false
 
 require: ./Homebrew/rubocops.rb
 
@@ -30,7 +29,7 @@ Layout/IndentArray:
   EnforcedStyle: special_inside_parentheses
 
 Layout/IndentHeredoc:
-  EnforcedStyle: squiggly
+  EnforcedStyle: unindent
 
 # conflicts with DSL-style path concatenation with `/`
 Layout/SpaceAroundOperators:
@@ -59,36 +58,34 @@ Lint/EndAlignment:
 Lint/ParenthesesAsGroupedExpression:
   Enabled: false
 
-# most metrics don't make sense to apply for formulae/taps
+# TODO: try to bring down all metrics maximums
 Metrics/AbcSize:
-  Enabled: false
+  Max: 250
 
 Metrics/BlockLength:
-  Enabled: false
+  Max: 1250
 
 Metrics/ClassLength:
-  Enabled: false
+  Max: 1500
 
 Metrics/CyclomaticComplexity:
-  Enabled: false
+  Max: 75
 
 Metrics/LineLength:
-  # 124 is the goal as GitHub diff UI wraps beyond that
-  Max: 190
-  # ignore manpage comments and long single-line strings
-  IgnoredPatterns: ['#: ', ' url "', ' mirror "', ' plist_options :']
+  Max: 400
 
 Metrics/MethodLength:
-  Enabled: false
+  Max: 250
 
 Metrics/ModuleLength:
-  Enabled: false
-
-Metrics/ParameterLists:
-  CountKeywordArgs: false
+  CountComments: false
+  Exclude:
+    - '**/bin/**/*'
+    - '**/cmd/**/*'
+    - '**/lib/**/*'
 
 Metrics/PerceivedComplexity:
-  Enabled: false
+  Max: 100
 
 # makes code less readable for minor performance increases
 Performance/Caller:
@@ -96,9 +93,6 @@ Performance/Caller:
 
 Style/Alias:
   EnforcedStyle: prefer_alias
-
-Style/AsciiComments:
-  Enabled: false
 
 Style/AutoResourceCleanup:
   Enabled: true
@@ -124,25 +118,8 @@ Style/Documentation:
 Style/Encoding:
   Enabled: true
 
-# disabled until we get the Metrics/LineLength down to 80.
-Style/IfUnlessModifier:
-  Enabled: false
-
-# messes with existing plist/caveats style
-Style/TrailingBodyOnMethodDefinition:
-  Enabled: false
-
-# use spaces for indentation; detect tabs
-Layout/Tab:
-  Enabled: true
-
-# We have no use for using `warn` because we are
-# calling Ruby with warnings disabled ourselves.
-Style/StderrPuts:
-  Enabled: false
-
 # dashes in filenames are typical
-Naming/FileName:
+Style/FileName:
   Regex: !ruby/regexp /^[\w\@\-\+\.]+(\.rb)?$/
 
 # falsely flags e.g. curl formatting arguments as format strings
@@ -212,25 +189,8 @@ Style/TrailingCommaInArguments:
   EnforcedStyleForMultiline: comma
 
 # we have too many variables like sha256 where this harms readability
-Naming/VariableNumber:
+Style/VariableNumber:
   Enabled: false
 
 Style/WordArray:
   MinSize: 4
-
-# we want to add this slowly and manually
-Style/FrozenStringLiteralComment:
-  Enabled: false
-
-# generally rescuing StandardError is fine
-Style/RescueStandardError:
-  Enabled: false
-
-# implicitly allow EOS as we use it everywhere
-Naming/HeredocDelimiterNaming:
-  Blacklist:
-    - END, EOD, EOF
-
-# we output how to use interpolated strings too often
-Lint/InterpolationCheck:
-  Enabled: false

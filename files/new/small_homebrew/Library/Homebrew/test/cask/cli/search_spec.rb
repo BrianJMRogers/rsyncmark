@@ -1,18 +1,14 @@
-require_relative "shared_examples/invalid_option"
-
 describe Hbc::CLI::Search, :cask do
   before(:each) do
     allow(Tty).to receive(:width).and_return(0)
   end
-
-  it_behaves_like "a command that handles invalid options"
 
   it "lists the available Casks that match the search term" do
     allow(GitHub).to receive(:search_code).and_return([])
 
     expect {
       Hbc::CLI::Search.run("local")
-    }.to output(<<~EOS).to_stdout.as_tty
+    }.to output(<<-EOS.undent).to_stdout.as_tty
       ==> Partial Matches
       local-caffeine
       local-transmission
@@ -24,7 +20,7 @@ describe Hbc::CLI::Search, :cask do
 
     expect {
       Hbc::CLI::Search.run("local")
-    }.to output(<<~EOS).to_stdout
+    }.to output(<<-EOS.undent).to_stdout
       local-caffeine
       local-transmission
     EOS
@@ -35,7 +31,7 @@ describe Hbc::CLI::Search, :cask do
 
     expect {
       Hbc::CLI::Search.run("local")
-    }.to output(<<~EOS).to_stdout
+    }.to output(<<-EOS.undent).to_stdout
       local-caffeine
       local-transmission
     EOS
@@ -45,7 +41,7 @@ describe Hbc::CLI::Search, :cask do
   it "shows that there are no Casks matching a search term that did not result in anything" do
     expect {
       Hbc::CLI::Search.run("foo-bar-baz")
-    }.to output(<<~EOS).to_stdout.as_tty
+    }.to output(<<-EOS.undent).to_stdout.as_tty
       No Cask found for "foo-bar-baz".
     EOS
   end
@@ -84,7 +80,7 @@ describe Hbc::CLI::Search, :cask do
   it "accepts a regexp argument" do
     expect {
       Hbc::CLI::Search.run("/^local-c[a-z]ffeine$/")
-    }.to output(<<~EOS).to_stdout.as_tty
+    }.to output(<<-EOS.undent).to_stdout.as_tty
       ==> Regexp Matches
       local-caffeine
     EOS
@@ -93,7 +89,7 @@ describe Hbc::CLI::Search, :cask do
   it "returns both exact and partial matches" do
     expect {
       Hbc::CLI::Search.run("test-opera")
-    }.to output(<<~EOS).to_stdout.as_tty
+    }.to output(<<-EOS.undent).to_stdout.as_tty
       ==> Exact Match
       test-opera
       ==> Partial Matches
@@ -104,7 +100,7 @@ describe Hbc::CLI::Search, :cask do
   it "does not search the Tap name" do
     expect {
       Hbc::CLI::Search.run("caskroom")
-    }.to output(<<~EOS).to_stdout.as_tty
+    }.to output(<<-EOS.undent).to_stdout.as_tty
       No Cask found for "caskroom".
     EOS
   end

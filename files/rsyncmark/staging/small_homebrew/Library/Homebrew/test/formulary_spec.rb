@@ -6,7 +6,7 @@ describe Formulary do
   let(:formula_name) { "testball_bottle" }
   let(:formula_path) { CoreTap.new.formula_dir/"#{formula_name}.rb" }
   let(:formula_content) do
-    <<~EOS
+    <<-EOS.undent
       class #{subject.class_s(formula_name)} < Formula
         url "file://#{TEST_FIXTURE_DIR}/tarballs/testball-0.1.tbz"
         sha256 TESTBALL_SHA256
@@ -14,7 +14,7 @@ describe Formulary do
         bottle do
           cellar :any_skip_relocation
           root_url "file://#{bottle_dir}"
-          sha256 "d48bbbe583dcfbfa608579724fc6f0328b3cd316935c6ea22f134610aaf2952f" => :#{Utils::Bottles.tag}
+          sha256 "9abc8ce779067e26556002c4ca6b9427b9874d25f0cafa7028e05b5c5c410cb4" => :#{Utils::Bottles.tag}
         end
 
         def install
@@ -66,7 +66,7 @@ describe Formulary do
     context "if the Formula has the wrong class" do
       let(:formula_name) { "giraffe" }
       let(:formula_content) do
-        <<~EOS
+        <<-EOS.undent
           class Wrong#{subject.class_s(formula_name)} < Formula
           end
         EOS

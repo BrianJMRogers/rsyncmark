@@ -6,7 +6,7 @@ require "ostruct"
 class Keg
   class AlreadyLinkedError < RuntimeError
     def initialize(keg)
-      super <<~EOS
+      super <<-EOS.undent
         Cannot link #{keg.name}
         Another version is already linked: #{keg.linked_keg_record.resolved_path}
         EOS
@@ -32,9 +32,9 @@ class Keg
     rescue NotAKegError, Errno::ENOENT
       "already exists. You may want to remove it:\n  rm '#{dst}'\n"
     else
-      <<~EOS
-        is a symlink belonging to #{conflict.name}. You can unlink it:
-          brew unlink #{conflict.name}
+      <<-EOS.undent
+      is a symlink belonging to #{conflict.name}. You can unlink it:
+        brew unlink #{conflict.name}
       EOS
     end
 
@@ -42,7 +42,7 @@ class Keg
       s = []
       s << "Could not symlink #{src}"
       s << "Target #{dst}" << suggestion
-      s << <<~EOS
+      s << <<-EOS.undent
         To force the link and overwrite all conflicting files:
           brew link --overwrite #{keg.name}
 
@@ -54,10 +54,9 @@ class Keg
   end
 
   class DirectoryNotWritableError < LinkError
-    def to_s
-      <<~EOS
-        Could not symlink #{src}
-        #{dst.dirname} is not writable.
+    def to_s; <<-EOS.undent
+      Could not symlink #{src}
+      #{dst.dirname} is not writable.
       EOS
     end
   end
@@ -339,7 +338,7 @@ class Keg
       dir if dir.directory? && dir.children.any? { |f| f.basename.to_s.start_with?("_") }
     when :fish then path/"share/fish/vendor_completions.d"
     end
-    dir&.directory? && !dir.children.empty?
+    dir && dir.directory? && !dir.children.empty?
   end
 
   def functions_installed?(shell)

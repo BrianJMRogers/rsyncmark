@@ -23,7 +23,7 @@ class PkgVersion
   end
 
   def to_s
-    if revision.positive?
+    if revision > 0
       "#{version}_#{revision}"
     else
       version.to_s

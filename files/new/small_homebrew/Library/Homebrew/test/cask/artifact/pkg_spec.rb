@@ -1,5 +1,5 @@
 describe Hbc::Artifact::Pkg, :cask do
-  let(:cask) { Hbc::CaskLoader.load(cask_path("with-installable")) }
+  let(:cask) { Hbc::CaskLoader.load_from_file(TEST_FIXTURE_DIR/"cask/Casks/with-installable.rb") }
   let(:fake_system_command) { class_double(Hbc::SystemCommand) }
 
   before(:each) do
@@ -8,7 +8,7 @@ describe Hbc::Artifact::Pkg, :cask do
 
   describe "install_phase" do
     it "runs the system installer on the specified pkgs" do
-      pkg = cask.artifacts.find { |a| a.is_a?(described_class) }
+      pkg = described_class.for_cask(cask).first
 
       expect(fake_system_command).to receive(:run!).with(
         "/usr/sbin/installer",
@@ -22,14 +22,14 @@ describe Hbc::Artifact::Pkg, :cask do
   end
 
   describe "choices" do
-    let(:cask) { Hbc::CaskLoader.load(cask_path("with-choices")) }
+    let(:cask) { Hbc::CaskLoader.load_from_file(TEST_FIXTURE_DIR/"cask/Casks/with-choices.rb") }
 
     it "passes the choice changes xml to the system installer" do
-      pkg = cask.artifacts.find { |a| a.is_a?(described_class) }
+      pkg = described_class.for_cask(cask).first
 
       file = double(path: Pathname.new("/tmp/choices.xml"))
 
-      expect(file).to receive(:write).with(<<~EOS)
+      expect(file).to receive(:write).with(<<-EOS.undent)
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
         <plist version="1.0">

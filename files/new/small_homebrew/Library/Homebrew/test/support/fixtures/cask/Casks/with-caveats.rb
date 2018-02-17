@@ -8,7 +8,7 @@ cask 'with-caveats' do
   app 'Caffeine.app'
 
   # simple string is evaluated at compile-time
-  caveats <<~EOS
+  caveats <<-EOS.undent
     Here are some things you might want to know.
   EOS
   # do block is evaluated at install-time

@@ -1,11 +1,11 @@
 inherit_from:
   - ../.rubocop.yml
+  - .rubocop_todo.yml
 
 AllCops:
   Include:
     - '**/.simplecov'
   Exclude:
-    - 'bin/*'
     - '**/Casks/**/*'
     - '**/vendor/**/*'
 
@@ -26,52 +26,12 @@ Lint/NestedMethodDefinition:
 Lint/ParenthesesAsGroupedExpression:
   Enabled: true
 
-# TODO: try to bring down all metrics maximums
-Metrics/AbcSize:
-  Max: 250
-
-Metrics/BlockLength:
-  Max: 1250
-
-Metrics/BlockNesting:
-  Max: 5
-
-Metrics/ClassLength:
-  Max: 1226
-
-Metrics/CyclomaticComplexity:
-  Max: 75
-
-Metrics/LineLength:
-  # 124 is the goal as GitHub diff UI wraps beyond that
-  Max: 244
-  # ignore manpage comments
-  IgnoredPatterns: ['#: ']
-
-Metrics/MethodLength:
-  Max: 195
-
-Metrics/ModuleLength:
-  Max: 222
-
-Metrics/PerceivedComplexity:
-  Max: 100
-
-# we won't change backward compatible method names
-Naming/MethodName:
-  Exclude:
-    - 'compat/**/*'
-
-# we won't change backward compatible predicate names
-Naming/PredicateName:
-  Exclude:
-    - 'compat/**/*'
-  NameWhitelist: is_32_bit?, is_64_bit?
+Metrics/ParameterLists:
+  CountKeywordArgs: false
 
 Style/BlockDelimiters:
   Exclude:
     - '**/*_spec.rb'
-    - '**/shared_examples/**/*.rb'
 
 # so many of these in formulae but none in here
 Style/GuardClause:
@@ -81,6 +41,13 @@ Style/GuardClause:
 Style/HashSyntax:
   EnforcedStyle: ruby19_no_mixed_keys
 
-# so many of these in formulae but none in here
-Style/TrailingBodyOnMethodDefinition:
-  Enabled: true
+# we won't change backward compatible method names
+Style/MethodName:
+  Exclude:
+    - 'compat/**/*'
+
+# we won't change backward compatible predicate names
+Style/PredicateName:
+  Exclude:
+    - 'compat/**/*'
+  NameWhitelist: is_32_bit?, is_64_bit?

@@ -82,14 +82,6 @@ def odeprecated(method, replacement = nil, disable: false, disable_on: nil, call
   # - Location of caller of deprecated method (if all else fails).
   backtrace = caller
   tap_message = nil
-
-  # Don't throw deprecations at all for cached, .brew or .metadata files.
-  return if backtrace.any? do |line|
-    line.include?(HOMEBREW_CACHE) ||
-    line.include?("/.brew/") ||
-    line.include?("/.metadata/")
-  end
-
   caller_message = backtrace.detect do |line|
     next unless line =~ %r{^#{Regexp.escape(HOMEBREW_LIBRARY)}/Taps/([^/]+/[^/]+)/}
     tap = Tap.fetch Regexp.last_match(1)
@@ -101,7 +93,7 @@ def odeprecated(method, replacement = nil, disable: false, disable_on: nil, call
   end
   caller_message ||= backtrace[1]
 
-  message = <<~EOS
+  message = <<-EOS.undent
     Calling #{method} is #{verb}!
     #{replacement_message}
     #{caller_message}#{tap_message}
@@ -109,8 +101,7 @@ def odeprecated(method, replacement = nil, disable: false, disable_on: nil, call
 
   if ARGV.homebrew_developer? || disable ||
      Homebrew.raise_deprecation_exceptions?
-    developer_message = message + "Or, even better, submit a PR to fix it!"
-    raise MethodDeprecatedError, developer_message
+    raise MethodDeprecatedError, message
   elsif !Homebrew.auditing?
     opoo "#{message}\n"
   end
@@ -163,7 +154,6 @@ def interactive_shell(f = nil)
   end
 
   if ENV["SHELL"].include?("zsh") && ENV["HOME"].start_with?(HOMEBREW_TEMP.resolved_path.to_s)
-    FileUtils.mkdir_p ENV["HOME"]
     FileUtils.touch "#{ENV["HOME"]}/.zshrc"
   end
 
@@ -198,8 +188,10 @@ module Homebrew
   end
 
   def install_gem_setup_path!(name, version = nil, executable = name)
-    # Match where our bundler gems are.
-    ENV["GEM_HOME"] = "#{ENV["HOMEBREW_LIBRARY"]}/Homebrew/vendor/bundle/ruby/#{RbConfig::CONFIG["ruby_version"]}"
+    # Respect user's preferences for where gems should be installed.
+    ENV["GEM_HOME"] = ENV["GEM_OLD_HOME"].to_s
+    ENV["GEM_HOME"] = Gem.user_dir if ENV["GEM_HOME"].empty?
+    ENV["GEM_PATH"] = ENV["GEM_OLD_PATH"] unless ENV["GEM_OLD_PATH"].to_s.empty?
 
     # Make rubygems notice env changes.
     Gem.clear_paths
@@ -231,15 +223,16 @@ module Homebrew
     end
 
     return if which(executable)
-    odie <<~EOS
+    odie <<-EOS.undent
       The '#{name}' gem is installed but couldn't find '#{executable}' in the PATH:
       #{ENV["PATH"]}
     EOS
   end
 
-  # rubocop:disable Style/GlobalVars
+  # Hash of Module => Set(method_names)
+  @injected_dump_stat_modules = {}
+
   def inject_dump_stats!(the_module, pattern)
-    @injected_dump_stat_modules ||= {}
     @injected_dump_stat_modules[the_module] ||= []
     injected_methods = @injected_dump_stat_modules[the_module]
     the_module.module_eval do
@@ -267,23 +260,34 @@ module Homebrew
       end
     end
   end
-  # rubocop:enable Style/GlobalVars
+end
+
+def with_system_path
+  old_path = ENV["PATH"]
+  ENV["PATH"] = "/usr/bin:/bin"
+  yield
+ensure
+  ENV["PATH"] = old_path
 end
 
 def with_homebrew_path
-  with_env(PATH: PATH.new(ENV["HOMEBREW_PATH"])) do
-    yield
-  end
+  old_path = ENV["PATH"]
+  ENV["PATH"] = ENV["HOMEBREW_PATH"]
+  yield
+ensure
+  ENV["PATH"] = old_path
 end
 
 def with_custom_locale(locale)
-  with_env(LC_ALL: locale) do
-    yield
-  end
+  old_locale = ENV["LC_ALL"]
+  ENV["LC_ALL"] = locale
+  yield
+ensure
+  ENV["LC_ALL"] = old_locale
 end
 
-def run_as_not_developer
-  with_env(HOMEBREW_DEVELOPER: nil) do
+def run_as_not_developer(&_block)
+  with_env "HOMEBREW_DEVELOPER" => nil do
     yield
   end
 end
@@ -341,9 +345,9 @@ def which_editor
   editor = %w[atom subl mate edit vim].find do |candidate|
     candidate if which(candidate, ENV["HOMEBREW_PATH"])
   end
-  editor ||= "vim"
+  editor ||= "/usr/bin/vim"
 
-  opoo <<~EOS
+  opoo <<-EOS.undent
     Using #{editor} because no editor was set in the environment.
     This may change in the future, so we recommend setting EDITOR,
     or HOMEBREW_EDITOR to your preferred text editor.
@@ -373,7 +377,7 @@ end
 # GZips the given paths, and returns the gzipped paths
 def gzip(*paths)
   paths.collect do |path|
-    safe_system "gzip", path
+    with_system_path { safe_system "gzip", path }
     Pathname.new("#{path}.gz")
   end
 end
@@ -417,8 +421,8 @@ def nostdout
   end
 end
 
-def paths
-  @paths ||= PATH.new(ENV["HOMEBREW_PATH"]).collect do |p|
+def paths(env_path = ENV["PATH"])
+  @paths ||= PATH.new(env_path).collect do |p|
     begin
       File.expand_path(p).chomp("/")
     rescue ArgumentError
@@ -532,7 +536,7 @@ end
 # Calls the given block with the passed environment variables
 # added to ENV, then restores ENV afterwards.
 # Example:
-# with_env(PATH: "/bin") do
+# with_env "PATH" => "/bin" do
 #   system "echo $PATH"
 # end
 #
@@ -543,7 +547,6 @@ def with_env(hash)
   old_values = {}
   begin
     hash.each do |key, value|
-      key = key.to_s
       old_values[key] = ENV.delete(key)
       ENV[key] = value
     end

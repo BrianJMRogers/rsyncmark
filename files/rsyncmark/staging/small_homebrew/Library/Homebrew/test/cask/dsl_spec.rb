@@ -1,5 +1,5 @@
 describe Hbc::DSL, :cask do
-  let(:cask) { Hbc::CaskLoader.load(cask_path(token.to_s)) }
+  let(:cask) { Hbc::CaskLoader.load_from_file(TEST_FIXTURE_DIR/"cask/Casks/#{token}.rb") }
   let(:token) { "basic-cask" }
 
   context "stanzas" do
@@ -20,7 +20,7 @@ describe Hbc::DSL, :cask do
     }
 
     it "prints a warning that it has encountered an unexpected method" do
-      expected = Regexp.compile(<<~EOS.lines.map(&:chomp).join(""))
+      expected = Regexp.compile(<<-EOS.undent.lines.map(&:chomp).join(""))
         (?m)
         Warning:
         .*
@@ -177,36 +177,6 @@ describe Hbc::DSL, :cask do
       expect(cask.call.sha256).to eq("xyz789")
       expect(cask.call.url.to_s).to eq("https://example.org/en-US.zip")
     end
-
-    it "returns an empty array if no languages are specified" do
-      cask = lambda do
-        Hbc::Cask.new("cask-with-apps") do
-          url "https://example.org/file.zip"
-        end
-      end
-
-      expect(cask.call.languages).to be_empty
-    end
-
-    it "returns an array of available languages" do
-      cask = lambda do
-        Hbc::Cask.new("cask-with-apps") do
-          language "zh" do
-            sha256 "abc123"
-            "zh-CN"
-          end
-
-          language "en-US", default: true do
-            sha256 "xyz789"
-            "en-US"
-          end
-
-          url "https://example.org/file.zip"
-        end
-      end
-
-      expect(cask.call.languages).to eq(["zh", "en-US"])
-    end
   end
 
   describe "app stanza" do
@@ -216,12 +186,12 @@ describe Hbc::DSL, :cask do
         app "Bar.app"
       end
 
-      expect(cask.artifacts.map(&:to_s)).to eq(["Foo.app (App)", "Bar.app (App)"])
+      expect(cask.artifacts[:app].map(&:to_s)).to eq(["Foo.app (App)", "Bar.app (App)"])
     end
 
     it "allow app stanzas to be empty" do
       cask = Hbc::Cask.new("cask-with-no-apps")
-      expect(cask.artifacts).to be_empty
+      expect(cask.artifacts[:app]).to be_empty
     end
   end
 
@@ -232,9 +202,8 @@ describe Hbc::DSL, :cask do
       expect(cask.caveats).to be_empty
 
       cask = Hbc::Cask.new("cask-with-caveats") do
-        def caveats
-          <<~EOS
-            When you install this Cask, you probably want to know this.
+        def caveats; <<-EOS.undent
+          When you install this Cask, you probably want to know this.
           EOS
         end
       end
@@ -250,7 +219,7 @@ describe Hbc::DSL, :cask do
         pkg "Bar.pkg"
       end
 
-      expect(cask.artifacts.map(&:to_s)).to eq(["Foo.pkg (Pkg)", "Bar.pkg (Pkg)"])
+      expect(cask.artifacts[:pkg].map(&:to_s)).to eq(["Foo.pkg (Pkg)", "Bar.pkg (Pkg)"])
     end
   end
 
@@ -502,10 +471,10 @@ describe Hbc::DSL, :cask do
       let(:token) { "with-installer-script" }
 
       it "allows installer script to be specified" do
-        expect(cask.artifacts.to_a[0].path).to eq(Pathname("/usr/bin/true"))
-        expect(cask.artifacts.to_a[0].args[:args]).to eq(["--flag"])
-        expect(cask.artifacts.to_a[1].path).to eq(Pathname("/usr/bin/false"))
-        expect(cask.artifacts.to_a[1].args[:args]).to eq(["--flag"])
+        expect(cask.artifacts[:installer].first.path).to eq(Pathname("/usr/bin/true"))
+        expect(cask.artifacts[:installer].first.args[:args]).to eq(["--flag"])
+        expect(cask.artifacts[:installer].to_a[1].path).to eq(Pathname("/usr/bin/false"))
+        expect(cask.artifacts[:installer].to_a[1].args[:args]).to eq(["--flag"])
       end
     end
 
@@ -513,7 +482,7 @@ describe Hbc::DSL, :cask do
       let(:token) { "with-installer-manual" }
 
       it "allows installer manual to be specified" do
-        installer = cask.artifacts.first
+        installer = cask.artifacts[:installer].first
         expect(installer).to be_a(Hbc::Artifact::Installer::ManualInstaller)
         expect(installer.path).to eq(cask.staged_path.join("Caffeine.app"))
       end
@@ -525,7 +494,7 @@ describe Hbc::DSL, :cask do
       let(:token) { "stage-only" }
 
       it "allows stage_only stanza to be specified" do
-        expect(cask.artifacts).to contain_exactly a_kind_of Hbc::Artifact::StageOnly
+        expect(cask.artifacts[:stage_only]).not_to be_empty
       end
     end
 
@@ -546,53 +515,28 @@ describe Hbc::DSL, :cask do
     end
   end
 
-  describe "#appdir" do
+  describe "appdir" do
     context "interpolation of the appdir in stanzas" do
       let(:token) { "appdir-interpolation" }
 
       it "is allowed" do
-        expect(cask.artifacts.first.source).to eq(Hbc::Config.global.appdir/"some/path")
+        expect(cask.artifacts[:binary].first.source).to eq(Hbc.appdir/"some/path")
       end
     end
 
     it "does not include a trailing slash" do
       begin
-        original_appdir = Hbc::Config.global.appdir
-        Hbc::Config.global.appdir = "#{original_appdir}/"
+        original_appdir = Hbc.appdir
+        Hbc.appdir = "#{original_appdir}/"
 
         cask = Hbc::Cask.new("appdir-trailing-slash") do
           binary "#{appdir}/some/path"
         end
 
-        expect(cask.artifacts.first.source).to eq(original_appdir/"some/path")
+        expect(cask.artifacts[:binary].first.source).to eq(original_appdir/"some/path")
       ensure
-        Hbc::Config.global.appdir = original_appdir
+        Hbc.appdir = original_appdir
       end
-    end
-  end
-
-  describe "#artifacts" do
-    it "sorts artifacts according to the preferable installation order" do
-      cask = Hbc::Cask.new("appdir-trailing-slash") do
-        postflight do
-          next
-        end
-
-        preflight do
-          next
-        end
-
-        binary "binary"
-
-        app "App.app"
-      end
-
-      expect(cask.artifacts.map(&:class).map(&:dsl_key)).to eq [
-        :preflight,
-        :app,
-        :binary,
-        :postflight,
-      ]
     end
   end
 end

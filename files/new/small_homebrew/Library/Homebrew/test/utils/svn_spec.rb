@@ -7,11 +7,7 @@ describe Utils do
     end
 
     it "returns svn version if svn available" do
-      if File.executable? "/usr/bin/svn"
-        expect(described_class.svn_available?).to be_truthy
-      else
-        expect(described_class.svn_available?).to be_falsey
-      end
+      expect(described_class.svn_available?).to be_truthy
     end
   end
 

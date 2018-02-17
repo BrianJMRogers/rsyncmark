@@ -50,7 +50,7 @@ describe JavaRequirement do
       let(:java) { path/"java" }
 
       def setup_java_with_version(version)
-        IO.write java, <<~EOS
+        IO.write java, <<-EOS.undent
           #!/bin/sh
           echo 'java version "#{version}"'
         EOS

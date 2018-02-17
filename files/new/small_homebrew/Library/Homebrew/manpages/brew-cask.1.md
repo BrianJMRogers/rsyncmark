@@ -19,7 +19,7 @@ names, and other aspects of this manual are still subject to change.
 
 ## FREQUENTLY USED COMMANDS
 
-  * `install` [--force] [--skip-cask-deps] [--require-sha] [--language=<iso-language>[,<iso-language> ... ]] <token> [ <token> ... ]:
+  * `install` [--force] [--skip-cask-deps] [--require-sha] <token> [ <token> ... ]:
     Install Cask identified by <token>.
 
   * `uninstall` [--force] <token> [ <token> ... ]:
@@ -34,7 +34,7 @@ names, and other aspects of this manual are still subject to change.
 
 ## COMMANDS
 
-  * `audit` [--language=<iso-language>[,<iso-language> ... ]] [ <token> ... ]:
+  * `audit` [ <token> ... ]:
     Check the given Casks for installability.
     If no tokens are given on the command line, all Casks are audited.
 
@@ -86,7 +86,7 @@ names, and other aspects of this manual are still subject to change.
     If <token> is given, summarize the staged files associated with the
     given Cask.
 
-  * `outdated` [--greedy] [--verbose|--quiet] [ <token> ... ]:
+  * `outdated` [--greedy] [--verbose|--quiet] [ <token> ...]:
     Without token arguments, display all the installed Casks that have newer
     versions available in the tap; otherwise check only the tokens given
     in the command line.
@@ -115,13 +115,6 @@ names, and other aspects of this manual are still subject to change.
   * `uninstall` or `rm` or `remove` [--force] <token> [ <token> ... ]:
     Uninstall the given Cask. With `--force`, uninstall even if the Cask
     does not appear to be present.
-
-  * `upgrade` [--force] [--greedy] <token> [ <token> ... ]:
-    Without token arguments, upgrade all the installed Casks that have newer
-    versions available in the tap; otherwise update the tokens given
-    in the command line.
-    If `--greedy` is given then also upgrade the Casks having `auto_updates true`
-    or `version :latest`.
 
   * `zap` <token> [ <token> ... ]:
     Unconditionally remove _all_ files associated with the given Cask.
@@ -174,9 +167,6 @@ in a future version.
   * `--appdir=<path>`:
     Target location for Applications. The default value is `/Applications`.
 
-  * `--language=<iso-language>[,<iso-language> ... ]]`:
-    Set language of the Cask to install. The first matching language is used, otherwise the default language on the Cask. The default value is the `language of your system`.
-
   * `--colorpickerdir=<path>`:
     Target location for Color Pickers. The default value is `~/Library/ColorPickers`.
 
@@ -225,7 +215,7 @@ Homebrew-Cask is implemented as a external command for Homebrew. That means
 this project is entirely built upon the Homebrew infrastructure. For
 example, upgrades to the Homebrew-Cask tool are received through Homebrew:
 
-    brew update; brew cask upgrade; brew cleanup; brew cask cleanup
+    brew update; brew cleanup; brew cask cleanup
 
 And updates to individual Cask definitions are received whenever you issue
 the Homebrew command:
