@@ -1,7 +1,6 @@
 ##########################################################################################
 # PROGRAM STRUCTURE
 ##########################################################################################
-
 # [DONE] parse args
     # [DONE] get trial name
     # [DONE] get output file name
@@ -10,14 +9,16 @@
 # [DONE] read password
 # [DONE] time dummy expect script
 # [DONE] stage entire thing (move files over, create target dir)
-# [TODO] warm up large
-# [TODO] run and record large
-# [TODO] warm up medium
-# [TODO] run and record medium
-# [TODO] warm up small
-# [TODO] run and record small
-# [TODO] remove staging files and target files
-# [DONE] alert user when entire thing has been completed
+# [TODO] warm up file_size
+# [TODO] run and record file_size
+# [TODO] clean files off of remote computer
+
+# other things I need to do
+# [TODO] make sure all functions do not use global variables
+# [TODO] comment all arguments for functions
+# [TODO] comment all return values for functions
+# [TODO] provide better output of progress during warm ups and runs
+# [TODO] write tests
 
 ##########################################################################################
 # gloabal constants
@@ -68,7 +69,6 @@ size=
 delta=
 throughput=
 trial_num=
-speedup= # need this to pass value between functions as we parse the speedup from rsync
 
 # misc variables
 declare -i arg_iterator=$#
@@ -85,8 +85,12 @@ OUTPUTFILEERROR="[*] Output file specified by $OUTPUTARG cannot be found...gener
 # function declarations
 ##########################################################################################
 
-#### FUNCTION PURPOSE: attempts to assign all command line args to their variables then
-####                   checks to make sure each argument was passed in and is non-empty
+#### PURPOSE: attempts to assign all command line args to their variables then
+####          checks to make sure each argument was passed in and is non-empty
+#### ARGUMENTS: TODO
+#### RETURN VALUE: TODO
+#### INCLUDES GLOBALS: TODO
+
 function parse_args
 {
     for i in ${BASH_ARGV[*]}; do
@@ -110,9 +114,12 @@ function parse_args
     fi
 }
 
-#### FUNCTION PURPOSE: verifies that the file passed in with the $FILESIZEARG parameter
-#                      exists and checks that the output file does too, creating this if
-#                      necessary
+#### PURPOSE: verifies that the file passed in with the $FILESIZEARG parameter
+#    exists and checks that the output file does too, creating this if necessary
+#### ARGUMENTS: TODO
+#### RETURN VALUE: TODO
+#### INCLUDES GLOBALS: TODO
+
 function verify_args
 {
     # check that the file exists
@@ -122,7 +129,10 @@ function verify_args
     fi
 }
 
-#### FUNCTION PURPOSE: useful for debugging, prints all arguments passed in via command line
+#### PURPOSE: useful for debugging, prints all arguments passed in via command line
+#### ARGUMENTS: TODO
+#### RETURN VALUE: TODO
+#### INCLUDES GLOBALS: TODO
 function print_args
 {
     arg_array=($trial_name $output_name $host)
@@ -132,7 +142,10 @@ function print_args
     done
 }
 
-#### FUNCTION PURPOSE: to ensure the user knows we'll overwrite files named $TEST_FILE_NAME
+#### PURPOSE: to ensure the user knows we'll overwrite files named $TEST_FILE_NAME
+#### ARGUMENTS: TODO
+#### RETURN VALUE: TODO
+#### INCLUDES GLOBALS: TODO
 function verify_overwrite_is_okay
 {
     echo "[*] this benchmark will overwrite files and the contents of directories named $REMOTE_DIR_BASE in directory $REMOTE_DIR_BASE_LOCATION. Are you sure you want to proceed? (yes/no)"
@@ -143,13 +156,19 @@ function verify_overwrite_is_okay
     fi
 }
 
-#### FUNCTION PUTPOSE: removes the $TEST_FILE_NAME file/directory locally and remotely
+#### PURPOSE: removes the $TEST_FILE_NAME file/directory locally and remotely
+#### ARGUMENTS: TODO
+#### RETURN VALUE: TODO
+#### INCLUDES GLOBALS: TODO
 function clean
 {
     echo "[!] TODO: write clean function"
 }
 
-#### FUNCTION PUTPOSE: retreive the password of the server
+#### PURPOSE: retreive the password of the server
+#### ARGUMENTS: TODO
+#### RETURN VALUE: TODO
+#### INCLUDES GLOBALS: TODO
 function get_host_password
 {
     printf "Enter the password for the remote client: "
@@ -157,7 +176,10 @@ function get_host_password
     printf "\n"
 }
 
-#### FUNCTION PUTPOSE: check that the files we hope to transfer are here locally
+#### PURPOSE: check that the files we hope to transfer are here locally
+#### ARGUMENTS: TODO
+#### RETURN VALUE: TODO
+#### INCLUDES GLOBALS: TODO
 function verify_files_to_transfer
 {
     # declare array to iterate through
@@ -175,16 +197,21 @@ function verify_files_to_transfer
     done
 }
 
-#### FUNCTION PURPOSE: will use rsync to sync file $1 to the host $2 at host destination $3
-####                   using password $4
+#### PURPOSE: will use rsync to sync file $1 to the host $2 at host destination $3 using password $4
+#### ARGUMENTS: TODO
+#### RETURN VALUE: TODO
+#### INCLUDES GLOBALS: TODO
 function sync_file
 {
     echo "syncing file"
     ./$SYNC_FILE_SCRIPT $1 $host $2 $host_password
 }
 
-#### FUNCTION PURPOSE: used at the beginning of the benchmark, this function moves the base
-####                   directory over to the remote machine
+#### PURPOSE: used at the beginning of the benchmark, this function moves the base
+####          directory over to the remote machine
+#### ARGUMENTS: TODO
+#### RETURN VALUE: TODO
+#### INCLUDES GLOBALS: TODO
 function stage_files
 {
     echo "staging files"
@@ -192,17 +219,24 @@ function stage_files
     sync_file $PATH_TO_RSYNCMARK_FILE_DIR $REMOTE_DIR_BASE_LOCATION
 }
 
-#### FUNCTION PURPOSE: This function is used at the beginning of each sync. It moves the "old" files from
-####                   the staging dir on the remote location to the target dir so that the files in the
-####                   target are reverted back to their old stage
+#### PURPOSE: This function is used at the beginning of each sync. It moves the "old" files from
+####          the staging dir on the remote location to the target dir so that the files in the
+####          target are reverted back to their old stage
+#### ARGUMENTS: TODO
+#### RETURN VALUE: TODO
+#### INCLUDES GLOBALS: TODO
 function move_files_from_staging_to_target
 {
     echo "moving files from staging to target"
     ./$SSH_MOVE_FILES_SCRIPT $host $host_password $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$STAGING_DIR_NAME $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$TARGET_DIR_NAME
 }
 
-#### FUNCTION PURPOSE: This function runs each rsync of large, medium, and small files 10 times to warm
-####                   up the benchmark
+#### PURPOSE: This function runs each rsync of large, medium, and small files 10 times to warm up the benchmark
+#### ARGUMENTS: TODO
+#### RETURN VALUE: TODO
+#### INCLUDES GLOBALS: TODO
+#### FUNCTION PURPOSE: TODO
+#### TODO rewrite to take an argument of which thing to warm up
 function warm_up
 {
     echo "warming up..."
@@ -223,7 +257,11 @@ function warm_up
     done
 }
 
-#### FUNCTION PURPOSE: run the actual times trials of rsync
+#### PURPOSE: run the actual times trials of rsync
+#### ARGUMENTS: TODO
+#### RETURN VALUE: TODO
+#### INCLUDES GLOBALS: TODO
+#### TODO rewrite into a seperate function which takes and argument of what to run
 function run_trials
 {
     # output file layout:
@@ -232,21 +270,25 @@ function run_trials
         # move files to target
     # sync large files
     for i in {1..10}; do
-        sync_file_record_output large
+        #sync_file_record_output large
+				echo
     done
 
     for i in {1..10}; do
-        sync_file_record_output medium
+        #sync_file_record_output medium
+				echo
     done
 
 
-    for i in {1..10}; do
+    for i in {1..1}; do
         sync_file_record_output small
     done
 }
 
-#### FUNCTION PURPOSE: sync each file and record the output
-####                   $1 should indicate the file size, $2 indicates trial number
+#### PURPOSE: sync each file and record the output
+#### ARGUMENTS: $1 should indicate the file size, $2 indicates trial number
+#### RETURN VALUE: NONE
+#### INCLUDES GLOBALS: TODO
 function sync_file_record_output
 {
     file=
@@ -290,9 +332,7 @@ function sync_file_record_output
     speedup=$(sed 's/^M//g' $RSYNC_OUTPUT_DUMP_FILE | grep total | grep speedup | grep is | awk '{print $7}')
 
 		# call this funciton so parse out the ^M. $speedup will be correctly assigned inside this function
-		parse_speedup
-
-    echo "speedup: [TODO:: FIX SPEED UP TO ONLY GRAB UP UNTIL PERIOD]"
+		speedup=$(parse_speedup $speedup)
 
     line="$trial_name, $real_time, $user_time, $sys_time, $throughput, $size_name, $size_bytes, $delta, $speedup, $i"
 
@@ -312,10 +352,14 @@ function sync_file_record_output
     rm $RSYNC_OUTPUT_DUMP_FILE
 }
 
-#### FUNCTION PURPOSE: when you parse out the speedup from rsync's output, it comes with a ^M char
+#### PURPOSE: when you parse out the speedup from rsync's output, it comes with a ^M char
 ####									 at the end which is a pain to parse out so we do this
+#### ARGUMENTS: a single string which should be formatted xxxx.xx where each x is a number
+#### RETURN VALUE: the string xxxx.xx without any trailing characters
+#### INCLUDES GLOBALS: NO
 function parse_speedup
 {
+	speedup=$1
 	# need to find where in $speedup the "." is, then parse two chars after that
 	char="x"
 	char_location=0
@@ -347,46 +391,24 @@ function parse_speedup
 		# use awk to parse out the substring we want
 		speedup=$(echo $speedup $char_location | awk '{print substr($1,0,$2)}')
 	fi
+	echo $speedup
 }
 
-#### FUNCTION PURPOSE: retreive the time from the file $TIME_FILE_NAME specified by $1 (real, user, sys)
+
+#### FUNCTION PURPOSE:
+#### PURPOSE: retreive the time from the file $TIME_FILE_NAME specified by $1 (real, user, sys)
+#### ARGUMENTS: TODO
+#### RETURN VALUE: TODO
+#### INCLUDES GLOBALS: TODO
+
 function get_time
 {
     time=$(cat $TIME_FILE_NAME | grep $1 | awk '{print $2}')
 }
 
-
-##########################################################################################
-# MAIN
-##########################################################################################
-#verify_files_to_transfer
-
-parse_args
-
-verify_args
-
-#verify_overwrite_is_okay
-
-#print_args # uncomment when needed
-
-get_host_password
-
-stage_files
-
-#warm_up large
-#run large
-#warm_up medium
-#run medium
-#warm_up small
-
-run_trials
-
-# clean up files locally and in client
-#clean
-
-# remind the user where their ouput is
-# echo "[*] You can find this trial's statistics in the output file $output_name"
-
-exit
+#### PURPOSE:
+#### ARGUMENTS:
+#### RETURN VALUE:
+#### INCLUDES GLOBALS:
 
 
