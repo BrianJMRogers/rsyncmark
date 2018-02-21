@@ -10,10 +10,12 @@
 # [DONE] read password
 # [DONE] time dummy expect script
 # [DONE] stage entire thing (move files over, create target dir)
-# [TODO] rsync (warm up then run, this is a for loop)
-    # [DONE] move files from staging to target
-    # [DONE] sync files from local to target
-    # [TODO] record output
+# [TODO] warm up large
+# [TODO] run and record large
+# [TODO] warm up medium
+# [TODO] run and record medium
+# [TODO] warm up small
+# [TODO] run and record small
 # [TODO] remove staging files and target files
 # [DONE] alert user when entire thing has been completed
 
@@ -66,6 +68,7 @@ size=
 delta=
 throughput=
 trial_num=
+speedup= # need this to pass value between functions as we parse the speedup from rsync
 
 # misc variables
 declare -i arg_iterator=$#
@@ -228,16 +231,16 @@ function run_trials
     #repeat 30 times:
         # move files to target
     # sync large files
-    for i in {1..1}; do
+    for i in {1..10}; do
         sync_file_record_output large
     done
 
-    for i in {1..1}; do
+    for i in {1..10}; do
         sync_file_record_output medium
     done
 
 
-    for i in {1..1}; do
+    for i in {1..10}; do
         sync_file_record_output small
     done
 }
@@ -255,7 +258,7 @@ function sync_file_record_output
         file=$MEDIUM_FILE_NAME
     elif [ $1 == "small" ]; then
         echo "small"
-        file=$MEDIUM_FILE_NAME
+        file=$SMALL_FILE_NAME
     fi
 
     # reset files
@@ -281,7 +284,14 @@ function sync_file_record_output
     size_name=$1
     size_bytes=$(cat $RSYNC_OUTPUT_DUMP_FILE | grep total | grep size | grep is | awk '{print $4}')
     #speedup=$(cat $RSYNC_OUTPUT_DUMP_FILE | grep total | grep speedup | grep is | awk '{print $7}')
-    speedup=$(sed 's/^M//g' $RSYNC_OUTPUT_DUMP_FILE | grep total | grep speedup | grep is | awk '{print substr($7,0,4)}')
+
+
+		# parse the speedup from the rsync output... it will have a ^M char at the end
+    speedup=$(sed 's/^M//g' $RSYNC_OUTPUT_DUMP_FILE | grep total | grep speedup | grep is | awk '{print $7}')
+
+		# call this funciton so parse out the ^M. $speedup will be correctly assigned inside this function
+		parse_speedup
+
     echo "speedup: [TODO:: FIX SPEED UP TO ONLY GRAB UP UNTIL PERIOD]"
 
     line="$trial_name, $real_time, $user_time, $sys_time, $throughput, $size_name, $size_bytes, $delta, $speedup, $i"
@@ -302,6 +312,43 @@ function sync_file_record_output
     rm $RSYNC_OUTPUT_DUMP_FILE
 }
 
+#### FUNCTION PURPOSE: when you parse out the speedup from rsync's output, it comes with a ^M char
+####									 at the end which is a pain to parse out so we do this
+function parse_speedup
+{
+	# need to find where in $speedup the "." is, then parse two chars after that
+	char="x"
+	char_location=0
+
+	# the while loop will find where in $speedup the period is. $char_location will end up being
+	# one char beyond the period after this loop
+	while [ "$char" != "." ]; do
+		char=$(echo $speedup $char_location $[$char_location-1] | awk '{print substr($1,$2,$3)}')
+
+		char_location=$[$char_location+1]
+
+		# if for some reason we keep parsing and don't come across the period, break out of the loop
+		# and assign variables as such so we know we failed
+		if [ $char_location -gt 20 ]; then
+			echo "[!] unable to find a perion in rsync's speedup number...assigning speedup to be ERROR"
+			char_location=-1
+			char="."
+		fi
+	done
+
+	# if we couldn't find it, error
+	if [ $char_location == -1 ]; then
+		speedup="ERROR"
+	else
+		# since after identifying location, we incremented, we only need to increment once more
+		# in order to be two places to the right of the decimal
+		char_location=$[$char_location+1]
+
+		# use awk to parse out the substring we want
+		speedup=$(echo $speedup $char_location | awk '{print substr($1,0,$2)}')
+	fi
+}
+
 #### FUNCTION PURPOSE: retreive the time from the file $TIME_FILE_NAME specified by $1 (real, user, sys)
 function get_time
 {
@@ -318,7 +365,7 @@ parse_args
 
 verify_args
 
-verify_overwrite_is_okay
+#verify_overwrite_is_okay
 
 #print_args # uncomment when needed
 
@@ -326,7 +373,11 @@ get_host_password
 
 stage_files
 
-#warm_up
+#warm_up large
+#run large
+#warm_up medium
+#run medium
+#warm_up small
 
 run_trials
 
