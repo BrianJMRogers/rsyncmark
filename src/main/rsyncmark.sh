@@ -46,7 +46,7 @@ TIME_FILE_NAME="time.txt"
 RSYNC_OUTPUT_DUMP_FILE="rsync_output.txt" #this is used to capture the output of each timed rsync run
 OUTPUT_HEADER="trial_name,real_time_seconds,user_time_seconds,sys_time_seconds,throughput_bytes_per_second,file_size_name,file_size_bytes,delta_size_bytes,speedup,trial_num"
 
-# argument declarations
+# argument declarations (args will alway be ordered NOH when passed between functions)
 NAMEARG="-n" # the name of this trial run. Will be listed as this in the output file
 OUTPUTARG="-o" # the name of the file to which output will be written (will create if it doesn't exist)
 HOSTARG="-h" # the IP address of the client with which we'll rsync
@@ -61,7 +61,6 @@ output_name=
 host=
 host_password=
 file_to_send=
-time= # used to capture time from time.txt
 real_time=
 user_time=
 sys_time=
@@ -87,7 +86,7 @@ OUTPUTFILEERROR="[*] Output file specified by $OUTPUTARG cannot be found...gener
 
 #### PURPOSE: attempts to assign all command line args to their variables then
 ####          checks to make sure each argument was passed in and is non-empty
-#### ARGUMENTS: TODO
+#### ARGUMENTS: NONE
 #### RETURN VALUE: TODO
 #### INCLUDES GLOBALS: TODO
 
@@ -306,18 +305,13 @@ function sync_file_record_output
     # reset files
     move_files_from_staging_to_target
 
-    yao=
-
     # sync large files
     { time -p $(./$SYNC_FILE_SCRIPT $PATH_TO_NEW_FILES/$file $host $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$TARGET_DIR_NAME $host_password>$RSYNC_OUTPUT_DUMP_FILE 2>&1) 1>dump.txt ; } 2>time.txt
 
     # record times
-    get_time real
-    real_time=$time
-    get_time user
-    user_time=$time
-    get_time sys
-    sys_time=$time
+		real_time=$(get_time real)
+		user_time=$(get_time user)
+		sys_time=$(get_time sys)
 
     # grep througput out of $RSYNC_OUTPUT_FILE
     delta=$(cat $RSYNC_OUTPUT_DUMP_FILE | grep sent | grep received | grep "bytes/sec" | awk '{print $2}')
@@ -357,24 +351,32 @@ function sync_file_record_output
 #### ARGUMENTS: a single string which should be formatted xxxx.xx where each x is a number
 #### RETURN VALUE: the string xxxx.xx without any trailing characters
 #### INCLUDES GLOBALS: NO
+#### TESTED: YES
 function parse_speedup
 {
+	# declare variables
 	speedup=$1
-	# need to find where in $speedup the "." is, then parse two chars after that
 	char="x"
 	char_location=0
 
 	# the while loop will find where in $speedup the period is. $char_location will end up being
 	# one char beyond the period after this loop
+	#speedup_length=$[${#speedup}]
+	#speedup=$(echo $speedup $speedup_length | awk '{print substr($1,0,$2)}')
+	#echo "[$speedup]" >> error.log
 	while [ "$char" != "." ]; do
-		char=$(echo $speedup $char_location $[$char_location-1] | awk '{print substr($1,$2,$3)}')
+		#char=$(echo $speedup $char_location $[$char_location-1] | awk '{print substr($1,$2,$3)}')
+
+
+		#echo "evaluating character [$char]" >> error.log
+		char=$(echo ${speedup:$char_location:1})
 
 		char_location=$[$char_location+1]
 
 		# if for some reason we keep parsing and don't come across the period, break out of the loop
 		# and assign variables as such so we know we failed
 		if [ $char_location -gt 20 ]; then
-			echo "[!] unable to find a perion in rsync's speedup number...assigning speedup to be ERROR"
+			echo "[!] unable to find a perion in rsync's speedup number...assigning speedup to be ERROR" >> error.log
 			char_location=-1
 			char="."
 		fi
@@ -384,9 +386,8 @@ function parse_speedup
 	if [ $char_location == -1 ]; then
 		speedup="ERROR"
 	else
-		# since after identifying location, we incremented, we only need to increment once more
-		# in order to be two places to the right of the decimal
-		char_location=$[$char_location+1]
+		# since after identifying location, we increment twice to get the two digits after the decimal
+		char_location=$[$char_location+2]
 
 		# use awk to parse out the substring we want
 		speedup=$(echo $speedup $char_location | awk '{print substr($1,0,$2)}')
@@ -394,16 +395,16 @@ function parse_speedup
 	echo $speedup
 }
 
-
 #### FUNCTION PURPOSE:
 #### PURPOSE: retreive the time from the file $TIME_FILE_NAME specified by $1 (real, user, sys)
-#### ARGUMENTS: TODO
-#### RETURN VALUE: TODO
-#### INCLUDES GLOBALS: TODO
-
+#### ARGUMENTS: the word referring to what we're grepping for (user, real, sys)
+#### RETURN VALUE: the numerical time found in $TEST_FILE_NAME referring to $1
+#### INCLUDES GLOBALS: NO
+#### TESTED: YES
 function get_time
 {
     time=$(cat $TIME_FILE_NAME | grep $1 | awk '{print $2}')
+		echo $time
 }
 
 #### PURPOSE:
