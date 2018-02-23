@@ -20,61 +20,25 @@
 # [TODO] provide better output of progress during warm ups and runs
 # [TODO] write tests
 
-##########################################################################################
-# gloabal constants
-##########################################################################################
-PROG_NAME="rsyncmark"
-SYNC_FILE_SCRIPT="sync_file.sh"
-SSH_MOVE_FILES_SCRIPT="move_files.sh"
-REMOTE_DIR_BASE="rsyncmark"  # this is the path on target MACHINE where STAGING/TARGET dirs exist
-REMOTE_DIR_BASE_LOCATION="~/"
-
-STAGING_DIR_NAME="staging"
-TARGET_DIR_NAME="target"
-
-#testing
-#PATH_TO_RSYNCMARK_FILE_DIR="../../files_test/rsyncmark" # this is the path to these files locally
-#PATH_TO_NEW_FILES="../../files_test/new"
-#PATH_TO_OLD_FILES="../../files_test/old"
-PATH_TO_RSYNCMARK_FILE_DIR="../../files/rsyncmark" # this is the path to these files locally
-PATH_TO_NEW_FILES="../../files/new"
-PATH_TO_OLD_FILES="../../files/old"
-LARGE_FILE_NAME="large_django"
-MEDIUM_FILE_NAME="medium_bootstrap"
-SMALL_FILE_NAME="small_homebrew"
-TIME_FILE_NAME="time.txt"
-RSYNC_OUTPUT_DUMP_FILE="rsync_output.txt" #this is used to capture the output of each timed rsync run
-OUTPUT_HEADER="trial_name,real_time_seconds,user_time_seconds,sys_time_seconds,throughput_bytes_per_second,file_size_name,file_size_bytes,delta_size_bytes,speedup,trial_num"
-
 
 ##########################################################################################
-# variable declarations
+# variables
 ##########################################################################################
-# argument variables. To add more, you'll need to add them to the parse_args, verify_args, and (optionally) print_args
-trial_name=
-output_name=
-host=
 host_password=
-
-##########################################################################################
-# Alert message declarations
-##########################################################################################
-OUTPUTFILEERROR="[*] Output file specified by $OUTPUTARG cannot be found...generating file.."
 
 ##########################################################################################
 # function declarations
 ##########################################################################################
 
-#### PURPOSE: attempts to assign all command line args to their variables then
-####          checks to make sure each argument was passed in and is non-empty
-#### ARGUMENTS: NONE
-#### RETURN VALUE: trial_name, output_name, host_name
-#### INCLUDES GLOBALS: trial_name, output_name, host
+#### PURPOSE: attempts to parse out trial_name, output_name, and host_name from command line
+####				  args and then returns them
+#### ARGUMENTS: the command line args
+#### RETURN VALUE: trial_name output_name host_name
 #### WILL TEST: YES
 #### TESTS WRITTEN: YES
 function parse_args
 {
-	usage="[!] USAGE: \n\t-n [name for this trial] \n\t-o [output file name (this will write to existing files of that name)] \n\t-h [IP of computer with which you'd like to sync]"
+	OUTPUTFILEERROR="[*] Output file specified by $OUTPUTARG cannot be found...generating file.."
 	name_arg="-n" # the name of this trial run. Will be listed as this in the output file
 	output_arg="-o" # the name of the file to which output will be written (will create if it doesn't exist)
 	host_arg="-h" # the IP address of the client with which we'll rsync
@@ -97,27 +61,7 @@ function parse_args
     fi
     arg_iterator=$arg_iterator-$one
   done
-  # verify arguments were passes sucessfully
-  if [ -z $trial_name ] || [ -z $output_name ] || [ -z $host ]; then
-	  echo $USAGE
-	  exit
-  fi
 	echo "$trial_name $output_name $host"
-}
-
-#### PURPOSE: verifies that the output file exists, creating this if necessary
-#### ARGUMENTS: NONE
-#### RETURN VALUE: NONE
-#### INCLUDES GLOBALS: output_name
-#### WILL TEST: YES
-#### TESTS WRITTEN: NO
-function verify_args
-{
-    # check that the file exists
-    if [ ! -f $output_name ]; then
-        echo "Unable to find an output file called [$output_name]... Generating file..."
-        echo $OUTPUT_HEADER > $output_name
-    fi
 }
 
 #### PURPOSE: useful for debugging, prints all arguments passed in via command line
@@ -169,6 +113,11 @@ function get_host_password
     read -s host_password
     printf "\n"
 }
+# used to pass the password back to main
+function print_password
+{
+	echo $host_password
+}
 
 #### PURPOSE: check that the files we hope to transfer are here locally
 #### ARGUMENTS: TODO
@@ -201,12 +150,12 @@ function verify_files_to_transfer
 function sync_file
 {
     echo "syncing file"
-    ./$SYNC_FILE_SCRIPT $1 $host $2 $host_password
+    ./$SYNC_FILE_SCRIPT $1 $2 $3 $4
 }
 
 #### PURPOSE: used at the beginning of the benchmark, this function moves the base
 ####          directory over to the remote machine
-#### ARGUMENTS: NONE
+#### ARGUMENTS: path to local rsyncmark file directory, host, remote directory, host_password
 #### RETURN VALUE: NONE
 #### WILL TEST: NO
 #### TEST WRITTEN: NA
@@ -214,7 +163,7 @@ function stage_files
 {
     echo "staging files"
     # move staging dir over
-    sync_file $PATH_TO_RSYNCMARK_FILE_DIR $REMOTE_DIR_BASE_LOCATION
+    sync_file $1 $2 $3 $4
 }
 
 #### PURPOSE: This function is used at the beginning of each sync. It moves the "old" files from
@@ -232,94 +181,83 @@ function move_files_from_staging_to_target
 }
 
 #### PURPOSE: This function runs rsync using one of the file sets but does not record time
-#### ARGUMENTS: $1 refers to which file set we want to warm up (small, medium, large)
+#### ARGUMENTS: $1 is the name and path of the file we want to warm up
+####						$2 is the number of warm ups we want to run
+####						$3 is the host
+####						$4 is the path to the target dir
+####						$5 is the host password
+####						$6 is the name of the file we're transferring
 #### RETURN VALUE: NONE
 #### INCLUDES GLOBALS: $host $host_password
 #### WILL TEST: NO
 #### TEST WRITTEN: NA
 function warm_up
 {
-	  echo "warming up..."
-		file=
+	  i=0
+		num_warm_ups=$2
+		while [ "$i" != "$num_warm_ups" ]; do
+			# increment
+			i=$[i+1]
 
-    if [ $1 == "large" ]; then
-        echo "large"
-        file=$LARGE_FILE_NAME
-    elif [ $1 == "medium" ]; then
-        echo "medium"
-        file=$MEDIUM_FILE_NAME
-    elif [ $1 == "small" ]; then
-        echo "small"
-        file=$SMALL_FILE_NAME
-    fi
+			echo "warming up [$6]. Warm up [$i] of [$num_warm_ups]"
+			# reset files
+    	move_files_from_staging_to_target
 
-    for i in {1..10}; do
-        # reset files
-        move_files_from_staging_to_target
+      # sync large files
+      ./$SYNC_FILE_SCRIPT $1 $3 $4 $5
 
-        # sync large files
-        ./$SYNC_FILE_SCRIPT $PATH_TO_NEW_FILES/$file $host $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$TARGET_DIR_NAME $host_password
-    done
+		done
 }
 
 #### PURPOSE: run the actual times trials of rsync
-#### ARGUMENTS: NONE
+#### ARGUMENTS: $1 is the name and path of the file we want to sync
+####						$2 is the number times we want to sync it
+####						$3 is the host
+####						$4 is the path to the target dir
+####						$5 is the host password
+####						$6 is the name of the file we're transferring
+####						$7 is the name of the output file
 #### RETURN VALUE: NONE
 #### INCLUDES GLOBALS: NO
 #### WILL TEST: NO
 #### TEST WRITTEN: NA
 function run_trials
 {
+	i=0
+	num_trials=$2
+	while [ "$i" != "$num_trials" ]; do
+		# increment
+		i=$[i+1]
 
-	# warm up large file
-	#warm_up large
-  # sync and record large
-  for i in {1..10}; do
-  	#sync_file_record_output large $i
-		echo
-  done
+		echo "running trial for [$6]. trial [$i] of [$num_trials]"
 
-	# warm up medium file
-	#warm_up medium
-	# sync and record medium
-  for i in {1..10}; do
-    #sync_file_record_output medium $i
-		echo
-  done
+		sync_file_record_output $1 $i $3 $4 $5 $6 $7
 
-	# warm up medium
-	#warm_up small
-	# sync and record small
-  for i in {1..10}; do
-		sync_file_record_output small $i
-  done
+	done
 }
 
 #### PURPOSE: sync each file and record the output
-#### ARGUMENTS: $1 should indicate the file size, $2 indicates trial number
+#### ARGUMENTS: $1 is the name and path of the file we want to warm up
+####						$2 is the current warm up number we're on
+####						$3 is the host
+####						$4 is the path to the target dir
+####						$5 is the host password
+####						$6 is the name of the file we're transferring
+####						$7 is the name of the output file
 #### RETURN VALUE: NONE
 #### INCLUDES GLOBALS: $host $host_password $output_name $trial_name
 #### WILL TEST: NO
 #### TEST WRITTEN: NA
 function sync_file_record_output
 {
-    file=
-    if [ $1 == "large" ]; then
-        echo "large"
-        file=$LARGE_FILE_NAME
-    elif [ $1 == "medium" ]; then
-        echo "medium"
-        file=$MEDIUM_FILE_NAME
-    elif [ $1 == "small" ]; then
-        echo "small"
-        file=$SMALL_FILE_NAME
-    fi
+    file=$1
+		output_name=$7
 
     # reset files
     move_files_from_staging_to_target
 
     # sync large files
-    { time -p $(./$SYNC_FILE_SCRIPT $PATH_TO_NEW_FILES/$file $host $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$TARGET_DIR_NAME $host_password>$RSYNC_OUTPUT_DUMP_FILE 2>&1) 1>dump.txt ; } 2>time.txt
+    { time -p $(./$SYNC_FILE_SCRIPT $1 $3 $4 $5>$RSYNC_OUTPUT_DUMP_FILE 2>&1) 1>dump.txt ; } 2>time.txt
 
     # record times
 		real_time=$(get_time real)
@@ -330,7 +268,7 @@ function sync_file_record_output
     delta=$(cat $RSYNC_OUTPUT_DUMP_FILE | grep sent | grep received | grep "bytes/sec" | awk '{print $2}')
     throughput=$(cat $RSYNC_OUTPUT_DUMP_FILE | grep sent | grep received | grep "bytes/sec" | awk '{print $7}')
     trial_num=$2
-    size_name=$1
+    size_name=$6
     size_bytes=$(cat $RSYNC_OUTPUT_DUMP_FILE | grep total | grep size | grep is | awk '{print $4}')
     #speedup=$(cat $RSYNC_OUTPUT_DUMP_FILE | grep total | grep speedup | grep is | awk '{print $7}')
 
@@ -349,8 +287,8 @@ function sync_file_record_output
 
     # remove time and dump files
     rm $TIME_FILE_NAME
-    rm dump.txt
-    rm $RSYNC_OUTPUT_DUMP_FILE
+    rm $DUMP_FILE_NAME
+		rm $RSYNC_OUTPUT_DUMP_FILE
 }
 
 #### PURPOSE: when you parse out the speedup from rsync's output, it comes with a ^M char
@@ -420,3 +358,4 @@ function get_time
 #### ARGUMENTS:
 #### RETURN VALUE:
 #### INCLUDES GLOBALS:
+
