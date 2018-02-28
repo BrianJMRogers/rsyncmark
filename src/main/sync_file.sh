@@ -8,7 +8,7 @@ set host [lindex $argv 1]
 set file_target_location [lindex $argv 2]
 set pass [lindex $argv 3]
 
-spawn rsync -vaz --delete $file_to_sync $host:$file_target_location
+spawn rsync -va --delete $file_to_sync $host:$file_target_location
 expect {
     "Are you sure you want to continue connecting (yes/no)"
     {

@@ -17,9 +17,9 @@ TARGET_DIR_NAME="target"
 PATH_TO_RSYNCMARK_FILE_DIR="../../files/rsyncmark" # this is the path to these files locally
 PATH_TO_NEW_FILES="../../files/new"
 PATH_TO_OLD_FILES="../../files/old"
-LARGE_FILE_NAME="large_django"
-MEDIUM_FILE_NAME="medium_bootstrap"
-SMALL_FILE_NAME="small_homebrew"
+LARGE_FILE_NAME="large"
+MEDIUM_FILE_NAME="medium"
+SMALL_FILE_NAME="small"
 TIME_FILE_NAME="time.txt"
 DUMP_FILE_NAME="dump.txt"
 RSYNC_OUTPUT_DUMP_FILE="rsync_output.txt" #this is used to capture the output of each timed rsync run
@@ -46,7 +46,8 @@ function call_warm_up
 
 function call_run_trials
 {
- run_trials $PATH_TO_NEW_FILES/$1 $2 $host $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$TARGET_DIR_NAME $host_password $1 $output_name
+	echo $PATH_TO_NEW_FILES/$1 $2 $host $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$TARGET_DIR_NAME $host_password $1 $output_name
+ 	run_trials $PATH_TO_NEW_FILES/$1 $2 $host $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$TARGET_DIR_NAME $host_password $1 $output_name
 }
 
 
@@ -83,7 +84,7 @@ get_host_password
 host_password=$(print_password)
 
 # stage files in remote directory
-#stage_files $PATH_TO_RSYNCMARK_FILE_DIR $host $REMOTE_DIR_BASE_LOCATION $host_password
+stage_files $PATH_TO_RSYNCMARK_FILE_DIR $host $REMOTE_DIR_BASE_LOCATION $host_password
 
 num_warm_ups=10
 num_trials=30
