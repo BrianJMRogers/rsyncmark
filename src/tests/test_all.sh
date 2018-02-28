@@ -3,3 +3,6 @@ cd ./parse_speedup/
 
 cd ../get_time
 ./test_get_time.sh
+
+cd ../parse_args
+./test_parse_args.sh
