@@ -6,3 +6,6 @@ cd ../get_time
 
 cd ../parse_args
 ./test_parse_args.sh
+
+cd ../check_file_exists
+./test_check_file_exists.sh

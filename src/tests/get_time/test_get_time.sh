@@ -1,7 +1,8 @@
-source $(cat ../path_to_main.txt)rsyncmark.sh
+source $(cat ../path_to_main.txt)rsyncmark_functions.sh
 
 expected_result=
 fail_count=0
+time_file_name="time.txt"
 
 SUCCESS_STATEMENT="[*] SUCCESS: [test_get_time] all test cases have passed"
 
@@ -21,17 +22,17 @@ function verify_time
 ##### TEST CASE #####
 testcase="real"
 expected_result="0.38"
-verify_time $(get_time $testcase) $expected_result
+verify_time $(get_time $testcase $time_file_name) $expected_result
 
 ##### TEST CASE #####
 testcase="user"
 expected_result="0.03"
-verify_time $(get_time $testcase) $expected_result
+verify_time $(get_time $testcase $time_file_name) $expected_result
 
 ##### TEST CASE #####
 testcase="sys"
 expected_result="0.04"
-verify_time $(get_time $testcase) $expected_result
+verify_time $(get_time $testcase $time_file_name) $expected_result
 
 
 ##### determine if we passed all tests #####

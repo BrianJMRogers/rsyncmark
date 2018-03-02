@@ -20,7 +20,6 @@
 # [TODO] provide better output of progress during warm ups and runs
 # [TODO] write tests
 
-
 ##########################################################################################
 # variables
 ##########################################################################################
@@ -32,13 +31,12 @@ host_password=
 
 #### PURPOSE: attempts to parse out trial_name, output_name, and host_name from command line
 ####				  args and then returns them
-#### ARGUMENTS: the command line args
+#### ARGUMENTS: $1 the command line args
 #### RETURN VALUE: trial_name output_name host_name
 #### WILL TEST: YES
 #### TESTS WRITTEN: YES
 function parse_args
 {
-	OUTPUTFILEERROR="[*] Output file specified by $OUTPUTARG cannot be found...generating file.."
 	name_arg="-n" # the name of this trial run. Will be listed as this in the output file
 	output_arg="-o" # the name of the file to which output will be written (will create if it doesn't exist)
 	host_arg="-h" # the IP address of the client with which we'll rsync
@@ -105,8 +103,8 @@ function clean
 #### ARGUMENTS: NONE
 #### RETURN VALUE: NONE
 #### INCLUDES GLOBALS: host_password
-#### WILL TEST: NO
-#### TESTS WRITTEN: NA
+#### WILL TEST: YES
+#### TESTS WRITTEN: NO
 function get_host_password
 {
     printf "Enter the password for the remote client: "
@@ -120,45 +118,39 @@ function print_password
 }
 
 #### PURPOSE: check that the files we hope to transfer are here locally
-#### ARGUMENTS: TODO
-#### RETURN VALUE: TODO
-#### WILL TEST: NO
-#### TESTS WRITTEN: NA
-function verify_files_to_transfer
+#### ARGUMENTS: path to the directory you want to check for
+#### RETURN VALUE: none if the file is found, otherwise an error message
+#### WILL TEST: YES
+#### TESTS WRITTEN: NO
+function check_file_exists
 {
-    # declare array to iterate through
-    files_array=( $LARGE_FILE_NAME $MEDIUM_FILE_NAME $SMALL_FILE_NAME )
-    for i in ${files_array[@]}; do
-        # check if each file is in the new directory
-        if [ ! -d $PATH_TO_NEW_FILES/$i ]; then
-            echo " $PATH_TO_NEW_FILES/$i not found"
-        fi
-
-        # check if each file is in the old directory
-        if [ ! -d $PATH_TO_OLD_FILES/$i ]; then
-            echo " $PATH_TO_OLD_FILES/$i not found"
-        fi
-    done
+	if [ ! -d $1 ]; then
+  	echo "[!] rsyncmark_functions -> verify_files_to_transfer: file not found [$1]"
+  fi
 }
 
 #### PURPOSE: will use rsync to sync file $1 to the host $2 at host destination $3 using password $4
 #### ARGUMENTS: $1 file to sync, $2 host to sync with, $3 destination directory $4 host password
 #### RETURN VALUE: NONE
 #### INCLUDES GLOBALS: $host $host_password
-#### WILL TEST: NO
-#### TEST WRITTEN: NA
+#### WILL TEST: YES
+#### TEST WRITTEN: NO
 function sync_file
 {
     echo "syncing file"
     ./$SYNC_FILE_SCRIPT $1 $2 $3 $4
+}
+function tmp
+{
+	$EOWSPORTS
 }
 
 #### PURPOSE: used at the beginning of the benchmark, this function moves the base
 ####          directory over to the remote machine
 #### ARGUMENTS: path to local rsyncmark file directory, host, remote directory, host_password
 #### RETURN VALUE: NONE
-#### WILL TEST: NO
-#### TEST WRITTEN: NA
+#### WILL TEST: YES
+#### TEST WRITTEN: NO
 function stage_files
 {
     echo "staging files"
@@ -172,8 +164,8 @@ function stage_files
 #### ARGUMENTS: NONE
 #### RETURN VALUE: NONE
 #### INCLUDES GLOBALS: $host $host_password
-#### WILL TEST: NO
-#### TEST WRITTEN: NA
+#### WILL TEST: YES
+#### TEST WRITTEN: NO
 function move_files_from_staging_to_target
 {
     echo "moving files from staging to target"
@@ -190,7 +182,6 @@ function move_files_from_staging_to_target
 #### RETURN VALUE: NONE
 #### INCLUDES GLOBALS: $host $host_password
 #### WILL TEST: NO
-#### TEST WRITTEN: NA
 function warm_up
 {
 	  i=0
@@ -217,10 +208,10 @@ function warm_up
 ####						$5 is the host password
 ####						$6 is the name of the file we're transferring
 ####						$7 is the name of the output file
+####						$8 is the name of the file get_time should parse with
 #### RETURN VALUE: NONE
 #### INCLUDES GLOBALS: NO
 #### WILL TEST: NO
-#### TEST WRITTEN: NA
 function run_trials
 {
 	i=0
@@ -231,7 +222,7 @@ function run_trials
 
 		echo "running trial for [$6]. trial [$i] of [$num_trials]"
 
-		sync_file_record_output $1 $i $3 $4 $5 $6 $7
+		sync_file_record_output $1 $i $3 $4 $5 $6 $7 $8
 
 	done
 }
@@ -244,6 +235,7 @@ function run_trials
 ####						$5 is the host password
 ####						$6 is the name of the file we're transferring
 ####						$7 is the name of the output file
+####						$8 is the name of the file get_time should parse with
 #### RETURN VALUE: NONE
 #### INCLUDES GLOBALS: $host $host_password $output_name $trial_name
 #### WILL TEST: NO
@@ -252,6 +244,7 @@ function sync_file_record_output
 {
     file=$1
 		output_name=$7
+		get_time_file=$8
 
     # reset files
     move_files_from_staging_to_target
@@ -260,9 +253,9 @@ function sync_file_record_output
     { time -p $(./$SYNC_FILE_SCRIPT $1 $3 $4 $5>$RSYNC_OUTPUT_DUMP_FILE 2>&1) 1>dump.txt ; } 2>time.txt
 
     # record times
-		real_time=$(get_time real)
-		user_time=$(get_time user)
-		sys_time=$(get_time sys)
+		real_time=$(get_time real $get_time_file)
+		user_time=$(get_time user $get_time_file)
+		sys_time=$(get_time sys $get_time_file)
 
     # grep througput out of $RSYNC_OUTPUT_FILE
     delta=$(cat $RSYNC_OUTPUT_DUMP_FILE | grep sent | grep received | grep "bytes/sec" | awk '{print $2}')
@@ -342,14 +335,15 @@ function parse_speedup
 
 #### FUNCTION PURPOSE:
 #### PURPOSE: retreive the time from the file $TIME_FILE_NAME specified by $1 (real, user, sys)
-#### ARGUMENTS: the word referring to what we're grepping for (user, real, sys)
+#### ARGUMENTS: $1 the word referring to what we're grepping for (user, real, sys)
+####						$2 the name of the file to parse from
 #### RETURN VALUE: the numerical time found in $TEST_FILE_NAME referring to $1
 #### INCLUDES GLOBALS: NO
 #### WILL TEST: YES
 #### TEST WRITTEN: YES
 function get_time
 {
-    time=$(cat $TIME_FILE_NAME | grep $1 | awk '{print $2}')
+    time=$(cat $2 | grep $1 | awk '{print $2}')
 		echo $time
 }
 

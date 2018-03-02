@@ -1,53 +1,61 @@
 source ./rsyncmark_functions.sh
-
-##########################################################################################
-# gloabal constants
-##########################################################################################
-PROG_NAME="rsyncmark"
-SYNC_FILE_SCRIPT="sync_file.sh"
-SSH_MOVE_FILES_SCRIPT="move_files.sh"
-REMOTE_DIR_BASE="rsyncmark"  # this is the path on target MACHINE where STAGING/TARGET dirs exist
-REMOTE_DIR_BASE_LOCATION="~/"
-STAGING_DIR_NAME="staging"
-TARGET_DIR_NAME="target"
-#testing
-#PATH_TO_RSYNCMARK_FILE_DIR="../../files_test/rsyncmark" # this is the path to these files locally
-#PATH_TO_NEW_FILES="../../files_test/new"
-#PATH_TO_OLD_FILES="../../files_test/old"
-PATH_TO_RSYNCMARK_FILE_DIR="../../files/rsyncmark" # this is the path to these files locally
-PATH_TO_NEW_FILES="../../files/new"
-PATH_TO_OLD_FILES="../../files/old"
-LARGE_FILE_NAME="large"
-MEDIUM_FILE_NAME="medium"
-SMALL_FILE_NAME="small"
-TIME_FILE_NAME="time.txt"
-DUMP_FILE_NAME="dump.txt"
-RSYNC_OUTPUT_DUMP_FILE="rsync_output.txt" #this is used to capture the output of each timed rsync run
-OUTPUT_HEADER="trial_name,real_time_seconds,user_time_seconds,sys_time_seconds,throughput_bytes_per_second,file_size_name,file_size_bytes,delta_size_bytes,speedup,trial_num"
-
-
-##########################################################################################
-# variable declarations
-##########################################################################################
-# argument variables. To add more, you'll need to add them to the parse_args, verify_args, and (optionally) print_args
-trial_name=
-output_name=
-host=
-host_password=
-
+source ./global_constants.sh
 
 ##########################################################################################
 # FUNCTIONS
 ##########################################################################################
+
+#### PURPOSE: run the actual times trials of rsync
+#### ARGUMENTS: $1 is the name and path of the file we want to sync
+####						$2 is the number times we want to sync it
+####						$3 is the host
+####						$4 is the path to the target dir
+####						$5 is the host password
+####						$6 is the name of the file we're transferring
+####						$7 is the name of the output file
+####						$8 is the name of the file get_time should parse with
+function run_trials
+{
+	i=0
+	num_trials=$2
+	while [ "$i" != "$num_trials" ]; do
+		# increment
+		i=$[i+1]
+
+		echo "running trial for [$6]. trial [$i] of [$num_trials]"
+
+		sync_file_record_output $1 $i $3 $4 $5 $6 $7 $8
+
+	done
+}
+
+#### ARGUMENTS: $1 the name of the file we're gunna warm up by sending accross network
+####						$2 the number of times we want to run the warm up
 function call_warm_up
 {
 	warm_up $PATH_TO_NEW_FILES/$1 $2 $host $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$TARGET_DIR_NAME $host_password $1
 }
 
+#### ARGUMENTS: $1 the name of the file we're gunna warm up by sending accross network
+####						$2 the number of times we want to run the warm up
 function call_run_trials
 {
-	echo $PATH_TO_NEW_FILES/$1 $2 $host $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$TARGET_DIR_NAME $host_password $1 $output_name
- 	run_trials $PATH_TO_NEW_FILES/$1 $2 $host $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$TARGET_DIR_NAME $host_password $1 $output_name
+ 	run_trials $PATH_TO_NEW_FILES/$1 $2 $host $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$TARGET_DIR_NAME $host_password $1 $output_name $TIME_FILE_NAME
+}
+
+#### ARGUMENTS: NONE
+function verify_files_to_transfer
+{
+	check_file_exists $PATH_TO_RSYNC_FILE_DIR
+	file_array=("$PATH_TO_NEW_FILES" "$PATH_TO_NEW_FILES/$LARGE_FILE_NAME" "$PATH_TO_NEW_FILES/$MEDIUM_FILE_NAME" "$PATH_TO_NEW_FILES/$SMALL_FILE_NAME" "$PATH_TO_RSYNCMARK_FILE_DIR" "$PATH_TO_RSYNCMARK_FILE_DIR/$STAGING_DIR_NAME" "$PATH_TO_RSYNCMARK_FILE_DIR/$STAGING_DIR_NAME/$LARGE_FILE_NAME" "$PATH_TO_RSYNCMARK_FILE_DIR/$STAGING_DIR_NAME/$MEDIUM_FILE_NAME" "$PATH_TO_RSYNCMARK_FILE_DIR/$STAGING_DIR_NAME/$SMALL_FILE_NAME")
+	for i in "${file_array[@]}"
+	do
+		does_exist=$(check_file_exists $i)
+		if [ "$does_exist" != "" ]; then
+			echo "[!] rsyncmark_main: unable to find file [$i]...exiting"
+			exit
+		fi
+	done
 }
 
 
@@ -74,6 +82,9 @@ if [ ! -f $output_name ]; then
   echo $OUTPUT_HEADER > $output_name
 fi
 
+# check that all the files are there
+verify_files_to_transfer
+exit
 # make sure the user is okay with overwriting files
 #verify_overwrite_is_okay
 
@@ -86,8 +97,8 @@ host_password=$(print_password)
 # stage files in remote directory
 stage_files $PATH_TO_RSYNCMARK_FILE_DIR $host $REMOTE_DIR_BASE_LOCATION $host_password
 
-num_warm_ups=10
-num_trials=30
+num_warm_ups=1
+num_trials=1
 call_warm_up $LARGE_FILE_NAME $num_warm_ups
 call_run_trials $LARGE_FILE_NAME $num_trials
 call_warm_up $MEDIUM_FILE_NAME $num_warm_ups
@@ -99,7 +110,7 @@ call_run_trials $SMALL_FILE_NAME $num_trials
 #clean
 
 # remind the user where their ouput is
-# echo "[*] You can find this trial's statistics in the output file $output_name"
+echo "[*] You can find this trial's statistics in the output file $output_name"
 
 exit
 

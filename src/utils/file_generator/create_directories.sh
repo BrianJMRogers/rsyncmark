@@ -1,9 +1,12 @@
-# variables
+# USAGE: This function randomly generates file sets (old and new) where the "new"
+# 			 version and the "old" version share similarities such that the "new" file
+# 			 set fully includes the "old" version but has additions to each file
+
+# constants
 file_sizer="../../file_sizer/file_sizer"
-is_greater_func="../../is_greater/is_greater"
+is_greater_func="../is_greater"
 
 # functions
-
 #### PURPOSE: to create two sets of files with a diff. The "new" file set will
 ####					be 2x the size of the diff and the "old" will be size x
 #### ARGUMENTS: $1 the name of the file sets youd like to create
@@ -23,6 +26,10 @@ function create_file_named
 	dir_size=
 	is_greater_result=
 	line_increase_amount=10
+
+	# create and move into files directory
+	mkdir "files"
+	cd "files"
 
 	echo creating file named [$file_name] with large size [$large_file_size] and small size [$small_file_size]
 
@@ -79,8 +86,9 @@ function create_file_named
 
 }
 
-mkdir "files"
-cd "files"
+
+larger_size=$1
+smaller_size=$2
 
 create_file_named "small" 2 1
 create_file_named "medium" 4 2

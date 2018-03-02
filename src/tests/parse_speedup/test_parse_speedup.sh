@@ -1,4 +1,4 @@
-source $(cat ../path_to_main.txt)rsyncmark.sh
+source $(cat ../path_to_main.txt)rsyncmark_functions.sh
 
 expected_result=
 fail_count=0
