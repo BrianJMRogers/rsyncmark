@@ -84,9 +84,9 @@ fi
 
 # check that all the files are there
 verify_files_to_transfer
-exit
+
 # make sure the user is okay with overwriting files
-#verify_overwrite_is_okay
+verify_overwrite_is_okay $REMOTE_DIR_BASE $REMOTE_DIR_BASE_LOCATION
 
 #print_args # uncomment when needed
 
@@ -95,10 +95,10 @@ get_host_password
 host_password=$(print_password)
 
 # stage files in remote directory
-stage_files $PATH_TO_RSYNCMARK_FILE_DIR $host $REMOTE_DIR_BASE_LOCATION $host_password
+stage_files $PATH_TO_RSYNCMARK_FILE_DIR $host $REMOTE_DIR_BASE_LOCATION $host_password $SYNC_FILE_SCRIPT
 
 num_warm_ups=1
-num_trials=1
+num_trials=3
 call_warm_up $LARGE_FILE_NAME $num_warm_ups
 call_run_trials $LARGE_FILE_NAME $num_trials
 call_warm_up $MEDIUM_FILE_NAME $num_warm_ups
@@ -107,7 +107,7 @@ call_warm_up $SMALL_FILE_NAME $num_warm_ups
 call_run_trials $SMALL_FILE_NAME $num_trials
 
 # clean up files locally and in client
-#clean
+clean $CLEAN_SCRIPT $host $host_password $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE
 
 # remind the user where their ouput is
 echo "[*] You can find this trial's statistics in the output file $output_name"

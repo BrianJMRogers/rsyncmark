@@ -5,20 +5,20 @@
     # [DONE] get trial name
     # [DONE] get output file name
     # [DONE] get file size arg
-# [TODO] verify files_to_transfer exist #do at the end when you know what you need to check
+# [DONE] verify files_to_transfer exist #do at the end when you know what you need to check
 # [DONE] read password
 # [DONE] time dummy expect script
 # [DONE] stage entire thing (move files over, create target dir)
-# [TODO] warm up file_size
-# [TODO] run and record file_size
-# [TODO] clean files off of remote computer
+# [DONE] warm up file_size
+# [DONE] run and record file_size
+# [DONE] clean files off of remote computer
 
 # other things I need to do
-# [TODO] make sure all functions do not use global variables
-# [TODO] comment all arguments for functions
-# [TODO] comment all return values for functions
-# [TODO] provide better output of progress during warm ups and runs
-# [TODO] write tests
+# [DONE] make sure all functions do not use global variables
+# [DONE] comment all arguments for functions
+# [DONE] comment all return values for functions
+# [DONE] provide better output of progress during warm ups and runs
+# [DONE] write tests
 
 ##########################################################################################
 # variables
@@ -73,14 +73,14 @@ function print_args
 }
 
 #### PURPOSE: to ensure the user knows we'll overwrite files named $TEST_FILE_NAME
-#### ARGUMENTS: NONE
+#### ARGUMENTS: $1 name of the directory we want to warn for deletion
+####					  $2 the location of this directory
 #### RETURN VALUE: YES
 #### INCLUDES GLOBALS: NO
 #### WILL TEST: NO
-#### TESTS WRITTEN: NA
 function verify_overwrite_is_okay
 {
-    echo "[*] this benchmark will overwrite files and the contents of directories named $REMOTE_DIR_BASE in directory $REMOTE_DIR_BASE_LOCATION. Are you sure you want to proceed? (yes/no)"
+    echo "[*] this benchmark will create and delete the directory named [$1] in directory [$2] on the remote machine. Are you sure you want to proceed? (yes/no)"
     read verification
     if [ "$verification" != "yes" ]; then
         echo "you must answer \"yes\" in order to continue"
@@ -89,22 +89,24 @@ function verify_overwrite_is_okay
 }
 
 #### PURPOSE: removes the $TEST_FILE_NAME file/directory locally and remotely
-#### ARGUMENTS: TODO
+#### ARGUMENTS: $1 clean script name
+####					  $2 host ip
+####						$3 host password
+####						$4 directory to delete
 #### RETURN VALUE: NONE
-#### INCLUDES GLOBALS: TODO
-#### WILL TEST: NO
-#### TESTS WRITTEN: NA
+#### INCLUDES GLOBALS: NO
+#### WILL TEST: YES
+#### TESTS WRITTEN: YES
 function clean
 {
-    echo "[!] TODO: write clean function"
+		./$1 $2 $3 $4
 }
 
 #### PURPOSE: retreive the password of the server
 #### ARGUMENTS: NONE
 #### RETURN VALUE: NONE
 #### INCLUDES GLOBALS: host_password
-#### WILL TEST: YES
-#### TESTS WRITTEN: NO
+#### WILL TEST: NO
 function get_host_password
 {
     printf "Enter the password for the remote client: "
@@ -121,7 +123,7 @@ function print_password
 #### ARGUMENTS: path to the directory you want to check for
 #### RETURN VALUE: none if the file is found, otherwise an error message
 #### WILL TEST: YES
-#### TESTS WRITTEN: NO
+#### TESTS WRITTEN: YES
 function check_file_exists
 {
 	if [ ! -d $1 ]; then
@@ -129,47 +131,39 @@ function check_file_exists
   fi
 }
 
-#### PURPOSE: will use rsync to sync file $1 to the host $2 at host destination $3 using password $4
-#### ARGUMENTS: $1 file to sync, $2 host to sync with, $3 destination directory $4 host password
-#### RETURN VALUE: NONE
-#### INCLUDES GLOBALS: $host $host_password
-#### WILL TEST: YES
-#### TEST WRITTEN: NO
-function sync_file
-{
-    echo "syncing file"
-    ./$SYNC_FILE_SCRIPT $1 $2 $3 $4
-}
-function tmp
-{
-	$EOWSPORTS
-}
-
 #### PURPOSE: used at the beginning of the benchmark, this function moves the base
 ####          directory over to the remote machine
-#### ARGUMENTS: path to local rsyncmark file directory, host, remote directory, host_password
+#### ARGUMENTS: $1 path to directory we want on the host machine
+####					  $2 host
+#### 						$3 remote directory
+#### 						$4 host_password
+#### 						$5 name of sync file script
 #### RETURN VALUE: NONE
 #### WILL TEST: YES
-#### TEST WRITTEN: NO
+#### TEST WRITTEN: YES
 function stage_files
 {
     echo "staging files"
     # move staging dir over
-    sync_file $1 $2 $3 $4
+    ./$5 $1 $2 $3 $4
 }
 
 #### PURPOSE: This function is used at the beginning of each sync. It moves the "old" files from
 ####          the staging dir on the remote location to the target dir so that the files in the
 ####          target are reverted back to their old stage
-#### ARGUMENTS: NONE
+#### ARGUMENTS: $1 ssh and move files script name
+####						$2 host ip
+####						$3 host password
+####						$4 path to copy from
+####						$5 path to copy to
 #### RETURN VALUE: NONE
 #### INCLUDES GLOBALS: $host $host_password
 #### WILL TEST: YES
-#### TEST WRITTEN: NO
+#### TEST WRITTEN: YES
 function move_files_from_staging_to_target
 {
-    echo "moving files from staging to target"
-    ./$SSH_MOVE_FILES_SCRIPT $host $host_password $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$STAGING_DIR_NAME $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$TARGET_DIR_NAME
+  echo "moving files from staging to target"
+	./$1 $2 $3 $4 $5
 }
 
 #### PURPOSE: This function runs rsync using one of the file sets but does not record time
@@ -192,7 +186,7 @@ function warm_up
 
 			echo "warming up [$6]. Warm up [$i] of [$num_warm_ups]"
 			# reset files
-    	move_files_from_staging_to_target
+    	move_files_from_staging_to_target $SSH_MOVE_FILES_SCRIPT $host $host_password $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$STAGING_DIR_NAME $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$TARGET_DIR_NAME
 
       # sync large files
       ./$SYNC_FILE_SCRIPT $1 $3 $4 $5
@@ -239,7 +233,6 @@ function run_trials
 #### RETURN VALUE: NONE
 #### INCLUDES GLOBALS: $host $host_password $output_name $trial_name
 #### WILL TEST: NO
-#### TEST WRITTEN: NA
 function sync_file_record_output
 {
     file=$1
@@ -247,7 +240,7 @@ function sync_file_record_output
 		get_time_file=$8
 
     # reset files
-    move_files_from_staging_to_target
+    move_files_from_staging_to_target $SSH_MOVE_FILES_SCRIPT $host $host_password $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$STAGING_DIR_NAME $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$TARGET_DIR_NAME
 
     # sync large files
     { time -p $(./$SYNC_FILE_SCRIPT $1 $3 $4 $5>$RSYNC_OUTPUT_DUMP_FILE 2>&1) 1>dump.txt ; } 2>time.txt

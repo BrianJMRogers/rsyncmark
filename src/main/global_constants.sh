@@ -4,6 +4,7 @@
 PROG_NAME="rsyncmark"
 SYNC_FILE_SCRIPT="sync_file.sh"
 SSH_MOVE_FILES_SCRIPT="move_files.sh"
+CLEAN_SCRIPT="remove_files.sh"
 REMOTE_DIR_BASE="rsyncmark"  # this is the path on target MACHINE where STAGING/TARGET dirs exist
 REMOTE_DIR_BASE_LOCATION="~/"
 STAGING_DIR_NAME="staging"
