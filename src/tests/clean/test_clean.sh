@@ -6,6 +6,14 @@ expected_result=
 fail_count=0
 test_dir="test_dir"
 path_to_script=$(cat ../path_to_main.txt)$CLEAN_SCRIPT
+host_password=
+
+if [ "$1" != "" ]; then
+	host_password=$1
+else
+	get_host_password
+	host_password=$(print_password)
+fi
 
 SUCCESS_STATEMENT="[*] SUCCESS: [test_clean] all test cases have passed"
 
@@ -35,8 +43,6 @@ function set_up
 set_up
 pwd=$(pwd)
 file_to_delete=$pwd/$test_dir
-get_host_password
-host_password=$(print_password)
 ip=$(curl ipecho.net/plain ; echo)
 clean $path_to_script $ip $host_password $file_to_delete
 verify_clean

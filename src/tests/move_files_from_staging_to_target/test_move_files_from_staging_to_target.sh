@@ -9,6 +9,15 @@ destination_dir="destination"
 staging="staging"
 target="target"
 path_to_script=$(cat ../path_to_main.txt)$SSH_MOVE_FILES_SCRIPT
+host_password=
+
+if [ "$1" != "" ]; then
+	host_password=$1
+else
+	get_host_password
+	host_password=$(print_password)
+fi
+
 
 SUCCESS_STATEMENT="[*] SUCCESS: [test_move_files_from_staging_to_target] all test cases have passed"
 
@@ -58,10 +67,8 @@ function clean_up
 
 ##### TEST CASE #####
 set_up
-get_host_password
 path_to_staging=$(pwd)/$staging
 path_to_target=$(pwd)/$target
-host_password=$(print_password)
 host=$(curl ipecho.net/plain ; echo)
 move_files_from_staging_to_target $path_to_script $host $host_password $path_to_staging $path_to_target
 verify_move_files
