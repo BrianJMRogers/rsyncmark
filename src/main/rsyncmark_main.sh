@@ -48,7 +48,8 @@ function call_run_trials
 function verify_files_to_transfer
 {
 	check_file_exists $PATH_TO_RSYNC_FILE_DIR
-	file_array=("$PATH_TO_NEW_FILES" "$PATH_TO_NEW_FILES/$LARGE_FILE_NAME" "$PATH_TO_NEW_FILES/$MEDIUM_FILE_NAME" "$PATH_TO_NEW_FILES/$SMALL_FILE_NAME" "$PATH_TO_RSYNCMARK_FILE_DIR" "$PATH_TO_RSYNCMARK_FILE_DIR/$STAGING_DIR_NAME" "$PATH_TO_RSYNCMARK_FILE_DIR/$STAGING_DIR_NAME/$LARGE_FILE_NAME" "$PATH_TO_RSYNCMARK_FILE_DIR/$STAGING_DIR_NAME/$MEDIUM_FILE_NAME" "$PATH_TO_RSYNCMARK_FILE_DIR/$STAGING_DIR_NAME/$SMALL_FILE_NAME")
+	file_array=("$PATH_TO_NEW_FILES" "$PATH_TO_NEW_FILES/$EXTRA_LARGE_FILE_NAME" "$PATH_TO_NEW_FILES/$LARGE_FILE_NAME" "$PATH_TO_NEW_FILES/$MEDIUM_FILE_NAME" "$PATH_TO_NEW_FILES/$SMALL_FILE_NAME" "$PATH_TO_NEW_FILES/$TINY_FILE_NAME" "$PATH_TO_RSYNCMARK_FILE_DIR" "$PATH_TO_RSYNCMARK_FILE_DIR/$STAGING_DIR_NAME" "$PATH_TO_RSYNCMARK_FILE_DIR/$STAGING_DIR_NAME/$EXTRA_LARGE_FILE_NAME" "$PATH_TO_RSYNCMARK_FILE_DIR/$STAGING_DIR_NAME/$LARGE_FILE_NAME" "$PATH_TO_RSYNCMARK_FILE_DIR/$STAGING_DIR_NAME/$MEDIUM_FILE_NAME" "$PATH_TO_RSYNCMARK_FILE_DIR/$STAGING_DIR_NAME/$SMALL_FILE_NAME"
+	"$PATH_TO_RSYNCMARK_FILE_DIR/$STAGING_DIR_NAME/$TINY_FILE_NAME")
 	for i in "${file_array[@]}"
 	do
 		does_exist=$(check_file_exists $i)
@@ -98,14 +99,19 @@ host_password=$(print_password)
 # stage files in remote directory
 stage_files $PATH_TO_RSYNCMARK_FILE_DIR $host $REMOTE_DIR_BASE_LOCATION $host_password $SYNC_FILE_SCRIPT
 
-num_warm_ups=1
-num_trials=3
+num_warm_ups=3
+num_trials=10
+
+call_warm_up $EXTRA_LARGE_FILE_NAME $num_warm_ups
+call_run_trials $EXTRA_LARGE_FILE_NAME $num_trials
 call_warm_up $LARGE_FILE_NAME $num_warm_ups
 call_run_trials $LARGE_FILE_NAME $num_trials
 call_warm_up $MEDIUM_FILE_NAME $num_warm_ups
 call_run_trials $MEDIUM_FILE_NAME $num_trials
 call_warm_up $SMALL_FILE_NAME $num_warm_ups
 call_run_trials $SMALL_FILE_NAME $num_trials
+call_warm_up $TINY_FILE_NAME $num_warm_ups
+call_run_trials $TINY_FILE_NAME $num_trials
 
 # clean up files locally and in client
 clean $CLEAN_SCRIPT $host $host_password $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE
