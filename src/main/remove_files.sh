@@ -1,4 +1,4 @@
-#!/usr/bin/expect
+#!/usr/bin/env expect
 
 # $1 is host ip
 # $2 is host password

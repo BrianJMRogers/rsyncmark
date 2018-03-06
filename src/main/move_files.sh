@@ -1,6 +1,9 @@
-#!/usr/bin/expect
+#!/usr/bin/env expect
 
 # $1 is host ip
+# $2 is host password
+# $3 is directory from which to wanna move the files
+# $4 is directory to which you wanna move the files
 
 set host [lindex $argv 0]
 set host_password [lindex $argv 1]

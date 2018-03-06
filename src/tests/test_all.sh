@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 cd ./parse_speedup/
 ./test_parse_speedup.sh
 

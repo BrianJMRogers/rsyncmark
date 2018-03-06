@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 source ./rsyncmark_functions.sh
 source ./global_constants.sh
 
@@ -113,4 +114,3 @@ clean $CLEAN_SCRIPT $host $host_password $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BA
 echo "[*] You can find this trial's statistics in the output file $output_name"
 
 exit
-

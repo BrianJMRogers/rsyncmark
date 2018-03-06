@@ -1,4 +1,4 @@
-#!/usr/bin/expect
+#!/usr/bin/env expect
 
 # $1 is local file_to_sync
 # $2 is host ip
