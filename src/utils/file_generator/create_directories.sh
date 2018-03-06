@@ -4,7 +4,7 @@
 
 # constants
 file_sizer="../../file_sizer/file_sizer"
-is_greater_func="../is_greater"
+is_greater_func="../../is_greater/is_greater"
 
 # functions
 #### PURPOSE: to create two sets of files with a diff. The "new" file set will
@@ -28,8 +28,8 @@ function create_file_named
 	line_increase_amount=10
 
 	# create and move into files directory
-	mkdir "files"
-	cd "files"
+	mkdir "files2"
+	cd "files2"
 
 	echo creating file named [$file_name] with large size [$large_file_size] and small size [$small_file_size]
 
@@ -90,7 +90,8 @@ function create_file_named
 larger_size=$1
 smaller_size=$2
 
-create_file_named "small" 2 1
-create_file_named "medium" 4 2
-create_file_named "large" 8 4
-
+#create_file_named "tiny" 2 1
+#create_file_named "small" 4 2
+#create_file_named "medium" 8 4
+#create_file_named "large" 16 8
+create_file_named "extra_large" 32 16
