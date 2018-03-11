@@ -293,14 +293,7 @@ function parse_speedup
 
 	# the while loop will find where in $speedup the period is. $char_location will end up being
 	# one char beyond the period after this loop
-	#speedup_length=$[${#speedup}]
-	#speedup=$(echo $speedup $speedup_length | awk '{print substr($1,0,$2)}')
-	#echo "[$speedup]" >> error.log
 	while [ "$char" != "." ]; do
-		#char=$(echo $speedup $char_location $[$char_location-1] | awk '{print substr($1,$2,$3)}')
-
-
-		#echo "evaluating character [$char]" >> error.log
 		char=$(echo ${speedup:$char_location:1})
 
 		char_location=$[$char_location+1]
@@ -308,7 +301,6 @@ function parse_speedup
 		# if for some reason we keep parsing and don't come across the period, break out of the loop
 		# and assign variables as such so we know we failed
 		if [ $char_location -gt 20 ]; then
-			echo "[!] unable to find a perion in rsync's speedup number...assigning speedup to be ERROR" >> error.log
 			char_location=-1
 			char="."
 		fi
