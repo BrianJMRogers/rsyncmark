@@ -37,6 +37,7 @@ function set_up
 	echo "test2" > $test_dir/test_file2.txt
 	echo "test3" > $test_dir/test_file3.txt
 	echo "test4" > $test_dir/test_file4.txt
+	cp $(cat ../path_to_main.txt)ssh_args.sh ssh_args.sh
 }
 
 ##### TEST CASE #####
@@ -47,6 +48,7 @@ ip=$(curl ipecho.net/plain ; echo)
 clean $path_to_script $ip $host_password $file_to_delete
 verify_clean
 
+rm ssh_args.sh
 ##### determine if we passed all tests #####
 if [ $fail_count == 0 ]; then
 	echo $SUCCESS_STATEMENT

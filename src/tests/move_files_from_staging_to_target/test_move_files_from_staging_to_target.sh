@@ -57,12 +57,15 @@ function set_up
 	echo yao5 > file5.txt
 
 	cd ..
+
+	cp $(cat ../path_to_main.txt)ssh_args.sh ssh_args.sh
 }
 
 function clean_up
 {
 	rm -rf $target
 	rm -rf $staging
+	rm ssh_args.sh
 }
 
 ##### TEST CASE #####
