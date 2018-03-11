@@ -99,8 +99,8 @@ host_password=$(print_password)
 # stage files in remote directory
 stage_files $PATH_TO_RSYNCMARK_FILE_DIR $host $REMOTE_DIR_BASE_LOCATION $host_password $SYNC_FILE_SCRIPT
 
-num_warm_ups=3
-num_trials=10
+num_warm_ups=1
+num_trials=1
 
 call_warm_up $EXTRA_LARGE_FILE_NAME $num_warm_ups
 call_run_trials $EXTRA_LARGE_FILE_NAME $num_trials

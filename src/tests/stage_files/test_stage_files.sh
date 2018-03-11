@@ -33,6 +33,25 @@ function verify_stage_files
 	fi
 }
 
+function set_up
+{
+	mkdir test_dir
+	echo yao1 >> test_dir/test1.txt
+	echo yao2 >> test_dir/test2.txt
+	echo yao3 >> test_dir/test3.txt
+	echo yao4 >> test_dir/test4.txt
+
+	cp $(cat ../path_to_main.txt)rsync_args.sh rsync_args.sh
+}
+
+function clean_up
+{
+ rm -rf test_dir
+ rm rsync_args.sh
+}
+
+set_up
+
 ##### TEST CASE #####
 current_directory=$(pwd)
 destination_dir="$current_directory/$destination_dir"
@@ -41,7 +60,10 @@ stage_files $test_dir $host $destination_dir $host_password $path_to_script
 verify_stage_files
 rm -rf $destination_dir
 
+clean_up
+
 ##### determine if we passed all tests #####
 if [ $fail_count == 0 ]; then
 	echo $SUCCESS_STATEMENT
 fi
+
