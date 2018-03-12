@@ -1,3 +1,3 @@
 # add your args to this variable
-args="-va --delete -p 12346"
-echo $args
+echo -va --delete -e \'ssh -p 12346\'
+
