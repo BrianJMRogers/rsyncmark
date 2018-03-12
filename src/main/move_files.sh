@@ -31,14 +31,19 @@ else
     	send "yes\r"
       exp_continue
     }
-    "*assword:"
+    "*:"
     {
       send "$host_password\r"
       exp_continue
     }
-    "$ "
+    "# "
     {
       send "rsync -a --delete $staging_dir/ $target_dir\r"
+      send "exit\r"
+    }
+		"$ "
+    {
+      send "rm -rf $dir_to_delete\r"
       send "exit\r"
     }
 	}

@@ -99,8 +99,8 @@ host_password=$(print_password)
 # stage files in remote directory
 stage_files $PATH_TO_RSYNCMARK_FILE_DIR $host $REMOTE_DIR_BASE_LOCATION $host_password $SYNC_FILE_SCRIPT
 
-num_warm_ups=1
-num_trials=1
+num_warm_ups=5
+num_trials=30
 
 call_warm_up $EXTRA_LARGE_FILE_NAME $num_warm_ups
 call_run_trials $EXTRA_LARGE_FILE_NAME $num_trials
@@ -114,7 +114,7 @@ call_warm_up $TINY_FILE_NAME $num_warm_ups
 call_run_trials $TINY_FILE_NAME $num_trials
 
 # clean up files locally and in client
-#clean $CLEAN_SCRIPT $host $host_password $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE
+clean $CLEAN_SCRIPT $host $host_password $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE
 
 # remind the user where their ouput is
 echo "[*] You can find this trial's statistics in the output file $output_name"

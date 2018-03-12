@@ -27,10 +27,6 @@ function create_file_named
 	is_greater_result=
 	line_increase_amount=10
 
-	# create and move into files directory
-	mkdir "files2"
-	cd "files2"
-
 	echo creating file named [$file_name] with large size [$large_file_size] and small size [$small_file_size]
 
 	# create dirs
@@ -86,12 +82,17 @@ function create_file_named
 
 }
 
+# create and move into files directory
+mkdir "files"
+cd "files"
+
 
 larger_size=$1
 smaller_size=$2
 
-#create_file_named "tiny" 2 1
-#create_file_named "small" 4 2
-#create_file_named "medium" 8 4
-#create_file_named "large" 16 8
+create_file_named "really_tiny" 1 0.5
+create_file_named "tiny" 2 1
+create_file_named "small" 4 2
+create_file_named "medium" 8 4
+create_file_named "large" 16 8
 create_file_named "extra_large" 32 16
