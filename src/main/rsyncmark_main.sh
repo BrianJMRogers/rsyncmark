@@ -114,7 +114,7 @@ call_warm_up $TINY_FILE_NAME $num_warm_ups
 call_run_trials $TINY_FILE_NAME $num_trials
 
 # clean up files locally and in client
-clean $CLEAN_SCRIPT $host $host_password $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE
+#clean $CLEAN_SCRIPT $host $host_password $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE
 
 # remind the user where their ouput is
 echo "[*] You can find this trial's statistics in the output file $output_name"

@@ -18,10 +18,13 @@ if [ ! -f rsync_args.sh ]; then
 else
 	# pull args from file
 	rsync_args=$(./rsync_args.sh)
+	args=($(echo $rsync_args))
 
+	echo ${args[@]}
+	exit
 	# use expect from here until EOF
 	/usr/bin/env expect<<EOF
-	spawn rsync $rsync_args $file_to_sync $host:$file_target_location
+	spawn $rsync_command
 	expect {
     "Are you sure you want to continue connecting (yes/no)"
     {
