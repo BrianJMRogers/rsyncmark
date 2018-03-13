@@ -17,6 +17,11 @@ target_dir=$4
 
 spawn ssh $ssh_args $host
 expect {
+	"*(yes/no)"
+  {
+    send "yes\r"
+    exp_continue
+  }
   "$destination_password_prompt"
   {
     send "$host_password\r"

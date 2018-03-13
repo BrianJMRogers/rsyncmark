@@ -23,7 +23,7 @@ chmod +x $temp_command_script
 /usr/bin/env expect<<EOF
 spawn ./$temp_command_script
 expect {
-  "Are you sure you want to continue connecting (yes/no)"
+  "*(yes/no)"
   {
     send "yes\r"
     exp_continue
