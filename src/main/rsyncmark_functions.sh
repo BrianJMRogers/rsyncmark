@@ -243,7 +243,7 @@ function sync_file_record_output
     # reset files
     move_files_from_staging_to_target $SSH_MOVE_FILES_SCRIPT $host $host_password $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$STAGING_DIR_NAME $REMOTE_DIR_BASE_LOCATION$REMOTE_DIR_BASE/$TARGET_DIR_NAME
 
-    # sync large files
+		# sync large files
     { time -p $(./$SYNC_FILE_SCRIPT $1 $3 $4 $5>$RSYNC_OUTPUT_DUMP_FILE 2>&1) 1>dump.txt ; } 2>time.txt
 
     # record times

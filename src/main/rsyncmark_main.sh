@@ -64,7 +64,8 @@ function verify_files_to_transfer
 ##########################################################################################
 # MAIN
 ##########################################################################################
-#verify_files_to_transfer
+# verify .conf and dependencies
+echo [!] TODO: verify conf and dependencies
 
 # parse command line args and save arguments
 args=$(parse_args)
@@ -99,8 +100,8 @@ host_password=$(print_password)
 # stage files in remote directory
 stage_files $PATH_TO_RSYNCMARK_FILE_DIR $host $REMOTE_DIR_BASE_LOCATION $host_password $SYNC_FILE_SCRIPT
 
-num_warm_ups=5
-num_trials=30
+num_warm_ups=1
+num_trials=1
 
 call_warm_up $EXTRA_LARGE_FILE_NAME $num_warm_ups
 call_run_trials $EXTRA_LARGE_FILE_NAME $num_trials
