@@ -1,0 +1,13 @@
+trial_name,real_time_seconds,user_time_seconds,sys_time_seconds,throughput_bytes_per_second,file_size_name,file_size_bytes,delta_size_bytes,speedup,trial_num
+Minix3, 5.08, 0.01, 0.00, 2,957,650.18, extra_large, 32,000,292, 16,127,603, 1.97, 1
+Minix3, 4.59, 0.01, 0.01, 3,614,905.78, extra_large, 32,000,292, 16,127,603, 1.97, 2
+Minix3, 5.57, 0.01, 0.00, 2,957,650.18, extra_large, 32,000,292, 16,127,603, 1.97, 3
+Minix3, 4.57, 0.01, 0.00, 2,957,650.18, extra_large, 32,000,292, 16,127,603, 1.97, 4
+Minix3, 4.70, 0.00, 0.00, 2,957,650.18, extra_large, 32,000,292, 16,127,603, 1.97, 5
+Minix3, 4.65, 0.01, 0.00, 2,957,650.18, extra_large, 32,000,292, 16,127,603, 1.97, 6
+Minix3, 20.05, 0.01, 0.00, , extra_large, , , ERROR, 7
+Minix3, 20.06, 0.01, 0.00, , extra_large, , , ERROR, 8
+Minix3, 20.05, 0.00, 0.00, , extra_large, , , ERROR, 9
+Minix3, 20.06, 0.00, 0.00, , extra_large, , , ERROR, 10
+Minix3, 20.06, 0.01, 0.00, , extra_large, , , ERROR, 11
+Minix3, 20.05, 0.00, 0.00, , extra_large, , , ERROR, 12
