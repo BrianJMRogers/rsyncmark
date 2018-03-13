@@ -1,6 +1,0 @@
-trial_name,real_time_seconds,user_time_seconds,sys_time_seconds,throughput_bytes_per_second,file_size_name,file_size_bytes,delta_size_bytes,speedup,trial_num
-Minix3, 2.43, 0.56, 0.69, 6506132.80, extra_large, 32000292, 16125598, 1.97, 1
-Minix3, 1.01, 0.30, 0.35, 5430692.00, large, 15998066, 8074860, 1.96, 1
-Minix3, 0.62, 0.17, 0.20, 2724536.00, medium, 7997300, 4049904, 1.96, 1
-Minix3, 0.45, 0.11, 0.12, 4181202.00, small, 4003880, 2071071, 1.92, 1
-Minix3, 0.28, 0.08, 0.09, 2105808.00, tiny, 1995352, 1041816, 1.90, 1
