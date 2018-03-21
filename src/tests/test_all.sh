@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+echo "[*] test_all: when prompted for the password of the \"destination machine\", enter the password for this local computer"
 source ../main/rsyncmark_functions.sh
 get_host_password
 host_pass=$(print_password)

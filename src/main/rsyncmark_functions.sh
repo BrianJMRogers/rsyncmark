@@ -110,7 +110,7 @@ function clean
 #### WILL TEST: NO
 function get_host_password
 {
-    printf "Enter the password for the remote client: "
+    printf "Enter the password for the destination machine: "
     read -s host_password
     printf "\n"
 }
