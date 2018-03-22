@@ -64,8 +64,17 @@ function verify_files_to_transfer
 ##########################################################################################
 # MAIN
 ##########################################################################################
-# verify .conf and dependencies
-echo [!] TODO: verify conf and dependencies
+# make sure expect is installed
+if [ "$(which expect | grep /)" == "" ]; then
+	echo [!] You need to install Expect if you want to use $PROG_NAME. Exiting...
+	exit
+fi
+
+# make sure $PROG_NAME.conf is installed
+if [ ! -f "$PROG_NAME.conf" ]; then
+	echo [!] Unable to find $PROG_NAME.conf. Exiting...
+	exit
+fi
 
 # parse command line args and save arguments
 args=$(parse_args)
