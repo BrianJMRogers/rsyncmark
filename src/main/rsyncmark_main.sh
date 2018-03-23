@@ -65,8 +65,8 @@ function verify_files_to_transfer
 # MAIN
 ##########################################################################################
 # make sure expect is installed
-if [ "$(which expect | grep /)" == "" ]; then
-	echo [!] You need to install Expect if you want to use $PROG_NAME. Exiting...
+if ! type "expect" > /dev/null; then
+  echo [!] You need to install Expect if you want to use $PROG_NAME. Exiting...
 	exit
 fi
 
