@@ -1,0 +1,5 @@
+trial_name,real_time_seconds,user_time_seconds,sys_time_seconds,throughput_bytes_per_second,file_size_name,file_size_bytes,delta_size_bytes,speedup,trial_num
+localhost, 0.77, 0.32, 0.34, 5430692.00, large, 15998066, 8074860, 1.96, 1
+localhost, 0.51, 0.18, 0.19, 8173608.00, medium, 7997300, 4049904, 1.96, 1
+localhost, 0.46, 0.12, 0.12, 1393734.00, small, 4003880, 2071071, 1.92, 1
+localhost, 0.35, 0.08, 0.08, 2105808.00, tiny, 1995352, 1041816, 1.90, 1

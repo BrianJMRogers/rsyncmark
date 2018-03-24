@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 source ./rsyncmark_functions.sh
 source ./global_constants.sh
+source ./rsyncmark.conf
 
 ##########################################################################################
 # FUNCTIONS
@@ -108,9 +109,6 @@ host_password=$(print_password)
 
 # stage files in remote directory
 stage_files $PATH_TO_RSYNCMARK_FILE_DIR $host $REMOTE_DIR_BASE_LOCATION $host_password $SYNC_FILE_SCRIPT
-
-num_warm_ups=5
-num_trials=30
 
 call_warm_up $LARGE_FILE_NAME $num_warm_ups
 call_run_trials $LARGE_FILE_NAME $num_trials
