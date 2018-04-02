@@ -23,6 +23,7 @@ The following 4 items are those which you may choose to configure if you wish:
 ## EXECUTION
 
 Once configured, executing rsyncmark is simple. To execute rsyncmark you’ll need to pass in 3 arguments in any order. Those arguments are for output file, destination, and trial name. Output file, passed in after the -o parameter, refers to the name of the output file rsyncmark will record output to. If a file by the given name does not exist, rsyncmark creates one. If it does exist, rsyncmark will write it’s data to the end of the file. Destination refers to the user and IP address on the destination machine with which rsyncmark will exchange files. The destination is passed in after the -h parameter and typically looks like user@<IP address>. The final parameter is the trial name parameter which is passed in after the -n parameter. This value of this argument is used in the output file so that various trials can be listed in the same output file. An example rsyncmark command might look like:
+
 ```./rsyncmark main.sh -o output.csv -h user@1.2.3.4 -n macOS```
 
 ## GENERATING YOUR OWN FILES
