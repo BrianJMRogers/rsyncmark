@@ -1,3 +1,6 @@
+## ACQUISITION
+There are two ways of acquiring rsyncmark. selecting the ```clone or download button``` on this page and then clicking ```Download ZIP```. This will download rsyncmark as a zip file into your default downloads directory. From here, unzip the file and you're ready to go. Alternatively, you can clone the directory from your terminal window. Simply run the command ```git clone git@github.com:BrianJMRogers/rsyncmark.git``` and the rsyncmark directory will be cloned to your computer. Once you have the directory, you're almost ready to use rsyncmark. 
+
 ## DEPENDENCIES
 
 Expect is an essential part of rsyncmark. It is used to respond to the password prompts presented by rsync and ssh. Installing Expect is fairly easy, simply run ```sudo yum install``` expect or ```sudo apt-get install expect``` at the command line. The Expect homepage can be found at http://expect.sourceforge.net/ where you can find alternative means of downloading the program as well as other information about the package.
